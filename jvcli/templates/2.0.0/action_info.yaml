@@ -1,0 +1,14 @@
+package:
+  name: "{{name}}"
+  author: "{{author}}"
+  architype: "{{architype}}"
+  version: "{{version}}"
+  meta:
+    title: "{{title}}"
+    description: "{{description}}"
+    group: "{{group}}"
+    type: "{{type}}"
+  config:
+    singleton: "{{singleton}}"
+  dependencies:
+    jivas: "~{{jivas_version}}"
