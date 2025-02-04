@@ -19,7 +19,7 @@ TYPE_SUFFIX_MAP = {
 @click.group()
 def create() -> None:
     """Group for creating resources like actions"""
-    pass
+    pass  # pragma: no cover
 
 
 @create.command(name="action")
@@ -66,7 +66,7 @@ def create() -> None:
 )
 @click.option(
     "--namespace",
-    default=load_token().get("namespaces", {}).get("default", "anonymous"),
+    default=None,
     help="Namespace for the action. Defaults to the username in the token.",
 )
 @click.option(
@@ -82,11 +82,6 @@ def create() -> None:
     show_default=True,
     help="Directory to create the action folder in.",
 )
-@click.option(
-    "--namespace",
-    default=load_token().get("namespaces", {}).get("default", "anonymous"),
-    help="Namespace for the action. Defaults to the username in the token.",
-)
 def create_action(
     name: str,
     version: str,
@@ -101,6 +96,7 @@ def create_action(
 
     # Retrieve the email from the token or set it as blank
     token = load_token()
+    namespace = namespace or token.get("namespaces", {}).get("default", "anonymous")
     author = token.get("email", "unknown@example.com")
 
     suffix = TYPE_SUFFIX_MAP[type]
@@ -113,19 +109,19 @@ def create_action(
     # Generate class name (CamelCase)
     architype = "".join(word.capitalize() for word in name.split("_"))
 
-    # Prepare the template path
-    template_path = os.path.join(TEMPLATES_DIR, __version__, "action_info.yaml")
-    if not os.path.exists(template_path):
-        click.secho(
-            f"Template for version {__version__} not found in {TEMPLATES_DIR}.",
-            fg="red",
-        )
-        return
-
     # Validate the Jivas version
     if str(jivas_version) not in __supported__jivas__versions__:
         click.secho(
             f"Jivas version {jivas_version} is not supported. Supported versions are: {__supported__jivas__versions__}.",
+            fg="red",
+        )
+        return
+
+    # Prepare the template path
+    template_path = os.path.join(TEMPLATES_DIR, jivas_version, "action_info.yaml")
+    if not os.path.exists(template_path):
+        click.secho(
+            f"Template for version {jivas_version} not found in {TEMPLATES_DIR}.",
             fg="red",
         )
         return
