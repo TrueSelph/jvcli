@@ -36,6 +36,9 @@ setup(
     extras_require={
         "dev": [
             "pre-commit",
+            "pytest",
+            "pytest-mock",
+            "pytest-cov",
         ],
     },
     entry_points={

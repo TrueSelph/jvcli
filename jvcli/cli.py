@@ -16,7 +16,7 @@ from jvcli.commands.update import update
 @click.version_option(__version__, prog_name="jvcli")
 def jvcli() -> None:
     """Jivas Package Repository CLI tool."""
-    pass
+    pass  # pragma: no cover
 
 
 # Register command groups
@@ -33,4 +33,4 @@ jvcli.add_command(login)
 jvcli.add_command(logout)
 
 if __name__ == "__main__":
-    jvcli()
+    jvcli()  # pragma: no cover

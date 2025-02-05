@@ -12,7 +12,7 @@ from jvcli.auth import load_token
 @click.group()
 def info() -> None:
     """Group for getting info about resources like actions."""
-    pass
+    pass  # pragma: no cover
 
 
 @info.command(name="action")
