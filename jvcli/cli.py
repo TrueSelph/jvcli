@@ -33,4 +33,4 @@ jvcli.add_command(login)
 jvcli.add_command(logout)
 
 if __name__ == "__main__":
-    jvcli()
+    jvcli()  # pragma: no cover

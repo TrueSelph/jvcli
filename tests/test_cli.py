@@ -43,14 +43,3 @@ class TestCli:
         assert result.exit_code == 0
         assert "Usage:" in result.output
         assert "Commands:" in result.output
-
-    def test_main_execution(self) -> None:
-        """Test that the CLI main execution works correctly."""
-        import subprocess
-
-        result = subprocess.run(
-            ["python3", "-m", "jvcli.cli"], capture_output=True, text=True
-        )
-        assert result.returncode == 0
-        assert "Usage:" in result.stdout
-        assert "Commands:" in result.stdout

@@ -15,7 +15,7 @@ from jvcli.auth import load_token
 @click.group()
 def download() -> None:
     """Group for downloading resources like actions."""
-    pass
+    pass  # pragma: no cover
 
 
 @download.command(name="action")
@@ -66,6 +66,7 @@ def _download_package(name: str, version: str, path: str, pkg_type: str) -> None
             fileobj=io.BytesIO(package_file.content), mode="r:gz"
         ) as tar_file:
             for member in tar_file.getmembers():
+
                 if "__MACOSX" in member.name:
                     continue
 

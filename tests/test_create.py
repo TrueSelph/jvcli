@@ -1,10 +1,12 @@
 """Tests for the create module."""
 
+import os
+
 from click.testing import CliRunner
 from pytest_mock import MockerFixture
 
 from jvcli import __supported__jivas__versions__
-from jvcli.commands.create import create_action
+from jvcli.commands.create import create_action, create_agent, create_namespace
 from jvcli.utils import TEMPLATES_DIR
 
 
@@ -223,4 +225,159 @@ class TestCreateCommand:
         assert result.exit_code == 0
         mock_click.assert_called_with(
             f"Template for version 2.0.0 not found in {TEMPLATES_DIR}.", fg="red"
+        )
+
+    def test_create_namespace_success_with_valid_input(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test creating a namespace successfully when user is logged in and provides valid name."""
+        # Mock dependencies
+        mock_load_token = mocker.patch("jvcli.commands.create.load_token")
+        mock_load_token.return_value = {
+            "token": "test_token",
+            "email": "test@example.com",
+            "namespaces": {"default": "anonymous", "groups": []},
+        }
+
+        mock_registry_api = mocker.patch(
+            "jvcli.commands.create.RegistryAPI.create_namespace"
+        )
+        mock_registry_api.return_value = {"status": "success"}
+
+        mock_save_token = mocker.patch("jvcli.commands.create.save_token")
+        mock_click = mocker.patch("click.secho")
+
+        # Run command
+        runner = CliRunner()
+        result = runner.invoke(create_namespace, ["--name", "testnamespace"])
+
+        # Verify results
+        assert result.exit_code == 0
+        mock_registry_api.assert_called_once_with("testnamespace", "test_token")
+        mock_save_token.assert_called_once_with(
+            "test_token",
+            {"default": "anonymous", "groups": ["testnamespace"]},
+            "test@example.com",
+        )
+        mock_click.assert_called_with(
+            "Namespace 'testnamespace' created successfully!", fg="green", bold=True
+        )
+
+    def test_create_namespace_user_not_logged_in(self, mocker: MockerFixture) -> None:
+        """Test creating a namespace when the user is not logged in."""
+        mock_load_token = mocker.patch("jvcli.commands.create.load_token")
+        mock_load_token.return_value = {}
+        mock_click = mocker.patch("click.secho")
+
+        runner = CliRunner()
+        result = runner.invoke(create_namespace, ["--name", "testnamespace"])
+
+        print(result.output)
+        assert result.exit_code == 0
+        mock_click.assert_called_with(
+            "You are not logged in. Please log in before creating a namespace.",
+            fg="red",
+        )
+
+    def test_create_namespace_empty_token_value(self, mocker: MockerFixture) -> None:
+        """Test handling of empty token value in local configuration."""
+        mock_load_token = mocker.patch("jvcli.commands.create.load_token")
+        mock_load_token.return_value = {"token": ""}
+        mock_click = mocker.patch("click.secho")
+
+        runner = CliRunner()
+        result = runner.invoke(create_namespace, ["--name", "testnamespace"])
+
+        assert result.exit_code == 0
+        mock_click.assert_called_with(
+            "Token missing from the local configuration. Please log in again.", fg="red"
+        )
+
+    def test_create_agent_with_valid_name_and_defaults(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test creating an agent with valid name and default values."""
+        mock_load_token = mocker.patch("jvcli.commands.create.load_token")
+        mock_load_token.return_value = {
+            "token": "test_token",
+            "email": "test@example.com",
+            "namespaces": {"default": "testuser"},
+        }
+        mock_makedirs = mocker.patch("os.makedirs")
+        mock_open = mocker.patch("builtins.open", mocker.mock_open())
+        mock_click = mocker.patch("click.secho")
+
+        runner = CliRunner()
+        result = runner.invoke(create_agent, ["--name", "test_agent"])
+
+        assert result.exit_code == 0
+        mock_makedirs.assert_called_with("./dafs/testuser/test_agent", exist_ok=True)
+
+        version = __supported__jivas__versions__[0]
+
+        mock_open.assert_any_call(
+            os.path.join(TEMPLATES_DIR, version, "agent_info.yaml"), "r"
+        )
+        mock_open.assert_any_call(
+            os.path.join(TEMPLATES_DIR, version, "agent_knowledge.yaml"), "r"
+        )
+        mock_open.assert_any_call(
+            os.path.join(TEMPLATES_DIR, version, "agent_descriptor.yaml"), "r"
+        )
+        mock_open.assert_any_call(
+            os.path.join(TEMPLATES_DIR, version, "agent_memory.yaml"), "r"
+        )
+        mock_open.assert_any_call("./dafs/testuser/test_agent/info.yaml", "w")
+        mock_open.assert_any_call("./dafs/testuser/test_agent/descriptor.yaml", "w")
+        mock_open.assert_any_call("./dafs/testuser/test_agent/knowledge.yaml", "w")
+        mock_open.assert_any_call("./dafs/testuser/test_agent/memory.yaml", "w")
+
+        mock_click.assert_called_with(
+            "Agent 'test_agent' created successfully in ./dafs/testuser/test_agent!",
+            fg="green",
+            bold=True,
+        )
+
+    def test_create_agent_with_unsupported_jivas_version(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test creating an agent with an unsupported Jivas version."""
+        mock_load_token = mocker.patch("jvcli.commands.create.load_token")
+        mock_load_token.return_value = {
+            "email": "test@example.com",
+            "namespaces": {"default": "testuser"},
+        }
+        mock_click = mocker.patch("click.secho")
+
+        runner = CliRunner()
+        result = runner.invoke(
+            create_agent, ["--name", "test_agent", "--jivas_version", "1.0.0"]
+        )
+
+        assert result.exit_code == 0
+        mock_click.assert_called_with(
+            "Jivas version 1.0.0 is not supported. Supported versions are: ['2.0.0'].",
+            fg="red",
+        )
+
+    def test_create_agent_missing_template(self, mocker: MockerFixture) -> None:
+        """Test create_agent when a template is missing."""
+        mock_load_token = mocker.patch("jvcli.commands.create.load_token")
+        mock_load_token.return_value = {
+            "email": "test@example.com",
+            "namespaces": {"default": "testuser"},
+        }
+        mocker.patch("os.makedirs")
+        mock_click = mocker.patch("click.secho")
+        mocker.patch(
+            "os.path.exists",
+            side_effect=lambda path: "agent_info.yaml" not in path,
+        )
+
+        runner = CliRunner()
+        result = runner.invoke(create_agent, ["--name", "test_agent"])
+
+        assert result.exit_code == 0
+        mock_click.assert_called_with(
+            "Template info.yaml not found in TEMPLATES_DIR.", fg="red"
         )

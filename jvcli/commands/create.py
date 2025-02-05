@@ -279,18 +279,11 @@ def create_namespace(name: str) -> None:
             "You are not logged in. Please log in before creating a namespace.",
             fg="red",
         )
-        click.secho(
-            "You are not logged in. Please log in before creating a namespace.",
-            fg="red",
-        )
         return
 
     # Extract the token
     token = token_data.get("token")
     if not token:
-        click.secho(
-            "Token missing from the local configuration. Please log in again.", fg="red"
-        )
         click.secho(
             "Token missing from the local configuration. Please log in again.", fg="red"
         )
@@ -305,10 +298,9 @@ def create_namespace(name: str) -> None:
         namespaces = token_data.get(
             "namespaces", {"default": "anonymous", "groups": []}
         )  # TODO: Remove default when API is updated
-        namespaces = token_data.get(
-            "namespaces", {"default": "anonymous", "groups": []}
-        )  # TODO: Remove default when API is updated
-        namespaces["groups"].append(name)
+
+        if name not in namespaces["groups"]:
+            namespaces["groups"].append(name)
 
         click.secho(f"Namespace '{name}' created successfully!", fg="green", bold=True)
 
@@ -345,7 +337,7 @@ def create_namespace(name: str) -> None:
 )
 @click.option(
     "--namespace",
-    default=load_token().get("namespaces", {}).get("default", "anonymous"),
+    default=None,
     help="Namespace for the agent. Defaults to the username in the token.",
 )
 def create_agent(
@@ -357,126 +349,71 @@ def create_agent(
     namespace: str,
 ) -> None:
     """Create a new agent with its folder and associated files."""
-    # Retrieve the email from the token or set it as blank
+
+    # Retrieve token info
     token = load_token()
+    namespace = namespace or token.get("namespaces", {}).get("default", "anonymous")
     author = token.get("email", "unknown@example.com")
 
-    # Format the full package name with namespace
-    full_name = f"{namespace}/{name}"
-
-    # Validate the Jivas version
+    # Validate Jivas version
     if str(jivas_version) not in __supported__jivas__versions__:
         click.secho(
             f"Jivas version {jivas_version} is not supported. Supported versions are: {__supported__jivas__versions__}.",
             fg="red",
         )
-
-    # Prepare the template path
-    template_path = os.path.join(TEMPLATES_DIR, __version__, "agent_info.yaml")
-    if not os.path.exists(template_path):
-        click.secho(
-            f"Template for version {__version__} not found in {TEMPLATES_DIR}.",
-            fg="red",
-        )
         return
 
-    # Prepare the yaml template path
-    knowledge_template_path = os.path.join(
-        TEMPLATES_DIR, __version__, "agent_knowledge.yaml"
-    )
-    if not os.path.exists(knowledge_template_path):
-        click.secho(
-            f"Knowledge template for version {__version__} not found in {TEMPLATES_DIR}.",
-            fg="red",
-        )
-        return
-
-    # Prepare the descriptor template path
-    descriptor_template_path = os.path.join(
-        TEMPLATES_DIR, __version__, "agent_descriptor.yaml"
-    )
-
-    if not os.path.exists(descriptor_template_path):
-        click.secho(
-            f"Descriptor template for version {__version__} not found in {TEMPLATES_DIR}.",
-            fg="red",
-        )
-        return
-
-    # Prepare the memory template path
-    memory_template_path = os.path.join(TEMPLATES_DIR, __version__, "agent_memory.yaml")
-
-    if not os.path.exists(memory_template_path):
-        click.secho(
-            f"Memory template for version {__version__} not found in {TEMPLATES_DIR}.",
-            fg="red",
-        )
-        return
-
-    # Load descriptor YAML template
-    with open(descriptor_template_path, "r") as file:
-        descriptor_template = file.read()
-        file.close()
-
-    # Load knowledge.yaml template
-    with open(knowledge_template_path, "r") as file:
-        knowledge_template = file.read()
-        file.close()
-
-    with open(template_path, "r") as file:
-        info_template = file.read()
-        file.close()
-
-    with open(memory_template_path, "r") as file:
-        memory_template = file.read()
-        file.close()
-
-    data = {
-        "name": full_name,  # Include namespace in the package name
-        "author": author,
-        "version": version,
-        "title": name.replace("_", " ").title(),
-        "description": description,
-        "type": type,
-        "jivas_version": jivas_version,
-    }
-
-    # Prepare target folder
+    # Prepare paths
     namespace_dir = os.path.join(path, namespace)
     daf_dir = os.path.join(namespace_dir, name)
     os.makedirs(daf_dir, exist_ok=True)
 
-    # Load and substitute YAML template
+    # Load templates
+    template_paths = {
+        "info.yaml": os.path.join(TEMPLATES_DIR, __version__, "agent_info.yaml"),
+        "descriptor.yaml": os.path.join(
+            TEMPLATES_DIR, __version__, "agent_descriptor.yaml"
+        ),
+        "knowledge.yaml": os.path.join(
+            TEMPLATES_DIR, __version__, "agent_knowledge.yaml"
+        ),
+        "memory.yaml": os.path.join(TEMPLATES_DIR, __version__, "agent_memory.yaml"),
+    }
 
-    templates = [
-        info_template,
-        descriptor_template,
-        knowledge_template,
-        memory_template,
-    ]
+    # Check if all templates exist
+    for filename, template_path in template_paths.items():
+        if not os.path.exists(template_path):
+            click.secho(f"Template {filename} not found in TEMPLATES_DIR.", fg="red")
+            return
 
-    for template in templates:
-        yaml_content = template
+    # Read templates
+    templates = {}
+    for key, path in template_paths.items():
+        with open(path, "r") as file:
+            templates[key] = file.read()
 
+    # Replace placeholders
+    data = {
+        "name": f"{namespace}/{name}",
+        "author": author,
+        "version": version,
+        "title": name.replace("_", " ").title(),
+        "description": description,
+        "type": "agent",
+        "jivas_version": jivas_version,
+    }
+
+    for filename, template_content in templates.items():
         for key, value in data.items():
-            yaml_content = yaml_content.replace(f"{{{{{key}}}}}", str(value))
+            template_content = template_content.replace(f"{{{{{key}}}}}", str(value))
 
-        # Write content to file
-        if template == info_template:
-            yaml_path = os.path.join(daf_dir, "info.yaml")
-        elif template == descriptor_template:
-            yaml_path = os.path.join(daf_dir, "descriptor.yaml")
-        elif template == knowledge_template:
-            yaml_path = os.path.join(daf_dir, "knowledge.yaml")
-        elif template == memory_template:
-            yaml_path = os.path.join(daf_dir, "memory.yaml")
+        with open(os.path.join(daf_dir, filename), "w") as file:
+            file.write(template_content)
 
-        with open(yaml_path, "w") as file:
-            file.write(yaml_content)
-            file.close()
-
+    # Create documentation
     create_docs(daf_dir, name, version, "agent", description)
 
+    # Success message
     click.secho(
         f"Agent '{name}' created successfully in {daf_dir}!", fg="green", bold=True
     )
@@ -492,7 +429,6 @@ def create_docs(
     if os.path.exists(readme_template):
         with open(readme_template, "r") as file:
             readme_content = file.read()
-            file.close()
 
         readme_content = readme_content.replace("{{version}}", version)
         readme_content = readme_content.replace("{{name}}", name)
@@ -501,7 +437,6 @@ def create_docs(
         target_readme = os.path.join(path, "README.md")
         with open(target_readme, "w") as file:
             file.write(readme_content)
-            file.close()
 
     # Create CHANGELOG
     changelog_template = os.path.join(TEMPLATES_DIR, "CHANGELOG.md")
