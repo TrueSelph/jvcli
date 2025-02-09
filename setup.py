@@ -26,6 +26,9 @@ setup(
         include=["jvcli", "jvcli.*"],
     ),
     include_package_data=True,
+    package_data={
+        "jvcli": ["client/**/*"],
+    },
     install_requires=[
         "click>=8.1.8",
         "requests>=2.32.3",
