@@ -23,34 +23,6 @@ jobs:
           pip install --upgrade pip
           pip install -e .[dev]
 
-      - name: Verify Installed Package (Debugging)
-        run: |
-          echo "Checking installed jvcli location..."
-          pip show jvcli
-          echo "Checking if jvcli is importable..."
-          python -c "import jvcli; print(jvcli.__file__)"
-
-      - name: Run Pytest with Coverage
-        run: |
-          pytest --cov=jvcli --cov-report=xml --cov-report=term-missing
-          coverage report --show-missing
-
-      - name: Debug Coverage File
-        run: |
-          if [ ! -f coverage.xml ]; then
-            echo "❌ coverage.xml not found!"
-            exit 1
-          else
-            echo "✅ coverage.xml generated successfully!"
-            head -n 20 coverage.xml
-          fi
-
-      - name: Upload Coverage Report (For Debugging)
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage.xml
-
       - name: Run Coverage Check
         uses: orgoro/coverage@v3.2
         with:
