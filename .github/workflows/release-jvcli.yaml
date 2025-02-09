@@ -18,10 +18,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Get previous version from Git tags
         id: get_previous_version
         run: |
+          git fetch --tags
           VERSION_TAG=$(git tag --list "v*" --sort=-v:refname | head -n 1 | sed 's/^v//')
           echo "previous_version=${VERSION_TAG:-0.0.0}" >> $GITHUB_ENV
           echo "Previous version: $VERSION_TAG"
@@ -37,11 +40,12 @@ jobs:
 
           if [ "$CURRENT_VERSION" != "$previous_version" ]; then
             echo "version_changed=true" >> $GITHUB_ENV
+            echo "version_changed=true" >> $GITHUB_OUTPUT
             echo "Version changed from $VERSION_TAG to $CURRENT_VERSION"
           else
             echo "version_changed=false" >> $GITHUB_ENV
+            echo "version_changed=false" >> $GITHUB_OUTPUT
             echo "Version did not change"
-            echo "version_changed=true" >> $GITHUB_OUTPUT
           fi
 
   publish:
