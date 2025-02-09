@@ -24,6 +24,7 @@ jobs:
         run: |
           VERSION_TAG=$(git tag --list "v*" --sort=-v:refname | head -n 1 | sed 's/^v//')
           echo "previous_version=${VERSION_TAG:-0.0.0}" >> $GITHUB_ENV
+          echo "Previous version: $VERSION_TAG"
           echo "previous_version=${VERSION_TAG:-0.0.0}" >> $GITHUB_OUTPUT
 
       - name: Get current version from __init__.py
@@ -36,6 +37,10 @@ jobs:
 
           if [ "$CURRENT_VERSION" != "$previous_version" ]; then
             echo "version_changed=true" >> $GITHUB_ENV
+            echo "Version changed from $VERSION_TAG to $CURRENT_VERSION"
+          else
+            echo "version_changed=false" >> $GITHUB_ENV
+            echo "Version did not change"
             echo "version_changed=true" >> $GITHUB_OUTPUT
           else
             echo "version_changed=false" >> $GITHUB_ENV
