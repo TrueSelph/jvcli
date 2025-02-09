@@ -23,6 +23,11 @@ jobs:
           pip install --upgrade pip
           pip install -e .[dev]
 
+      - name: Run Pytest with Coverage
+        run: |
+          pytest --cov=jvcli --cov-report=xml --cov-report=term-missing
+          coverage report --show-missing
+
       - name: Run Coverage Check
         uses: orgoro/coverage@v3.2
         with:
