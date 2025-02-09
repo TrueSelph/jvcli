@@ -4,6 +4,9 @@ import os
 
 from setuptools import find_packages, setup
 
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
 
 def get_version() -> str:
     """Get the package version from the __init__ file."""
@@ -20,8 +23,11 @@ setup(
     name="jvcli",
     version=get_version(),
     description="CLI tool for Jivas Package Repository",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     author="TrueSelph Inc.",
     author_email="admin@trueselph.com",
+    url="https://github.com/TrueSelph/jvcli",
     packages=find_packages(
         include=["jvcli", "jvcli.*"],
     ),
