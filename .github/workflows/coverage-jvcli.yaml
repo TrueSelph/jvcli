@@ -11,22 +11,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.12
 
       - name: Install dependencies
         run: pip install .[dev]
 
-      - name: Generate Coverage
-        run: pytest --cov=jvcli --cov-report=xml
+      - name: Run Pytest with Coverage
+        run: pytest --cov=jvcli --cov-report=xml --cov-report=term-missing
 
-      - name: Get Cover
+      - name: Verify Coverage File
+        run: |
+          if [ ! -f coverage.xml ]; then
+            echo "❌ coverage.xml not found! Coverage reporting failed."
+            exit 1
+          else
+            echo "✅ coverage.xml generated successfully!"
+            head -n 20 coverage.xml
+          fi
+
+      - name: Upload Coverage Report (For Debugging)
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+      - name: Run Coverage Check
         uses: orgoro/coverage@v3.2
         with:
-            coverageFile: coverage.xml
-            token: ${{ secrets.GITHUB_TOKEN }}
-            thresholdAll: 0.5
+          coverageFile: coverage.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          thresholdAll: 0.5
