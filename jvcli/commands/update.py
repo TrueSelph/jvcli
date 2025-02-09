@@ -9,7 +9,7 @@ from jvcli.auth import load_token
 @click.group()
 def update() -> None:
     """Group for updating resources like namespaces."""
-    pass
+    pass  # pragma: no cover
 
 
 @update.command(name="namespace")

@@ -23,11 +23,13 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+test_source/
 
 # Others #
 .coverage
 .session
 *.session.db
+mydatabase
 .DS_Store
 .vscode
 build

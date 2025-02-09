@@ -9,7 +9,7 @@ import yaml
 from packaging.specifiers import SpecifierSet
 from packaging.version import parse as parse_version
 
-from jvcli import __version__ as version
+from jvcli import __supported__jivas__versions__
 from jvcli.api import RegistryAPI
 from jvcli.auth import load_token
 
@@ -32,8 +32,11 @@ def validate_name(ctx: click.Context, param: click.Parameter, value: str) -> str
     return value
 
 
-def validate_yaml_format(info_data: dict, type: str) -> None:
+def validate_yaml_format(info_data: dict, type: str, version: str = "latest") -> bool:
     """Validate if the info.yaml data matches the corresponding version template."""
+    if version == "latest":
+        version = max(__supported__jivas__versions__)
+
     if type == "action" or type.endswith("action"):
         template_path = os.path.join(TEMPLATES_DIR, version, "action_info.yaml")
 
@@ -41,7 +44,8 @@ def validate_yaml_format(info_data: dict, type: str) -> None:
         template_path = os.path.join(TEMPLATES_DIR, version, "agent_info.yaml")
 
     if not os.path.exists(template_path):
-        raise ValueError(f"Template for version {version} not found.")
+        click.secho(f"Template for version {version} not found.", fg="red")
+        return False
 
     # Load template
     with open(template_path, "r") as template_file:
@@ -55,10 +59,20 @@ def validate_yaml_format(info_data: dict, type: str) -> None:
     if set(info_data.keys()) != set(template_data.keys()):
         missing_keys = set(template_data.keys()) - set(info_data.keys())
         extra_keys = set(info_data.keys()) - set(template_data.keys())
-        raise ValueError(
-            f"info.yaml validation failed. "
-            f"Missing keys: {missing_keys}, Extra keys: {extra_keys}"
-        )
+
+        if extra_keys:
+            click.secho(
+                f"Warning: Extra keys: {extra_keys} found in info.yaml, the jivas package repository may ignore them.",
+                fg="yellow",
+            )
+
+        if missing_keys:
+            click.secho(
+                f"info.yaml validation failed. Missing keys: {missing_keys}",
+                fg="red",
+            )
+            return False
+    return True
 
 
 def validate_package_name(name: str) -> None:
@@ -70,7 +84,6 @@ def validate_package_name(name: str) -> None:
 
     namespace, _ = name.split("/", 1)
     namespaces = load_token().get("namespaces", {}).get("groups", [])
-    click.secho(f"Valid namespaces: {namespaces}", fg="yellow")
     if namespace not in namespaces:
         raise ValueError(
             f"Namespace '{namespace}' is not accessible to the current user."
@@ -133,7 +146,7 @@ def is_version_compatible(version: str, specifiers: str) -> bool:
 
     except Exception as e:
         # Handle exceptions if the inputs are malformed or invalid
-        print(f"Error comparing versions: {e}")
+        click.secho(f"Error comparing versions: {e}", fg="red")
         return False
 
 
@@ -142,16 +155,29 @@ def validate_dependencies(dependencies: dict) -> None:
     missing_dependencies = []
     for dep, specifier in dependencies.items():
         if dep == "jivas":
-            if not is_version_compatible(version, specifier):
-                missing_dependencies.append(f"jivas {specifier}")
-            # Exit loop
-        else:
-            # specifier formatted like ">=0.0.1", "<0.0.2"
-            package = RegistryAPI.download_package(
-                name=dep, version=specifier, suppress_error=True
-            )
-            if not package and dep == "jivas":
+            # Check if the version is in list of supported versions
+            def supported(spec: str) -> bool:
+                return any(
+                    is_version_compatible(version, spec)
+                    for version in __supported__jivas__versions__
+                )
+
+            if not supported(specifier):
                 missing_dependencies.append(f"{dep} {specifier}")
+        elif dep == "actions":
+            # Check if action exists in the registry
+            for name, spec in specifier.items():
+                package = RegistryAPI.download_package(
+                    name=name, version=spec, suppress_error=True
+                )
+
+                if not package:
+                    missing_dependencies.append(f"{dep} {specifier}")
+        elif dep == "pip":
+            # TODO: Add support for pip dependencies
+            continue
+        else:
+            raise ValueError(f"Unknown dependency type: {dep}")
 
     if missing_dependencies:
         raise ValueError(f"Dependencies not found in registry: {missing_dependencies}")
