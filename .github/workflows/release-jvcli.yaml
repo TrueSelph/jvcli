@@ -42,9 +42,6 @@ jobs:
             echo "version_changed=false" >> $GITHUB_ENV
             echo "Version did not change"
             echo "version_changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "version_changed=false" >> $GITHUB_ENV
-            echo "version_changed=false" >> $GITHUB_OUTPUT
           fi
 
   publish:
