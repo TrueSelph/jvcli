@@ -2,13 +2,9 @@ name: Linting and Pre-commit checks for the jvcli
 
 on:
   pull_request:
-    paths:
-      - "./**"
   push:
     branches:
       - main
-    paths:
-      - "./**"
 
 jobs:
   pre-commit-jvcli:

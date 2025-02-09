@@ -2,13 +2,9 @@ name: Running jvcli test cases
 
 on:
   pull_request:
-    paths:
-      - "./**"
   push:
     branches:
       - main
-    paths:
-      - "./**"
 
 jobs:
   run-tests:

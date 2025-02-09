@@ -2,13 +2,10 @@ name: Code Coverage for jvcli
 
 on:
   pull_request:
-    paths:
-      - "./**"
   push:
     branches:
       - main
-    paths:
-      - "./**"
+
 jobs:
   coverage:
     runs-on: ubuntu-latest
