@@ -4,7 +4,7 @@ import os
 
 import click
 
-from jvcli import __supported__jivas__versions__, __version__
+from jvcli import __supported__jivas__versions__
 from jvcli.api import RegistryAPI
 from jvcli.auth import load_token, save_token
 from jvcli.utils import TEMPLATES_DIR, validate_name, validate_snake_case
@@ -370,14 +370,14 @@ def create_agent(
 
     # Load templates
     template_paths = {
-        "info.yaml": os.path.join(TEMPLATES_DIR, __version__, "agent_info.yaml"),
+        "info.yaml": os.path.join(TEMPLATES_DIR, jivas_version, "agent_info.yaml"),
         "descriptor.yaml": os.path.join(
-            TEMPLATES_DIR, __version__, "agent_descriptor.yaml"
+            TEMPLATES_DIR, jivas_version, "agent_descriptor.yaml"
         ),
         "knowledge.yaml": os.path.join(
-            TEMPLATES_DIR, __version__, "agent_knowledge.yaml"
+            TEMPLATES_DIR, jivas_version, "agent_knowledge.yaml"
         ),
-        "memory.yaml": os.path.join(TEMPLATES_DIR, __version__, "agent_memory.yaml"),
+        "memory.yaml": os.path.join(TEMPLATES_DIR, jivas_version, "agent_memory.yaml"),
     }
 
     # Check if all templates exist
