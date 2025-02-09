@@ -1,4 +1,4 @@
-# jvcli
+# JIVAS Command Line Interface (JVCLI)
 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/TrueSelph/jvcli)
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/TrueSelph/jvcli/test-jvcli.yaml)
@@ -76,8 +76,8 @@ jvcli --help
 <summary>Contributor Graph</summary>
 <br>
 <p align="left">
-   <a href="https://github.com{/TrueSelph/jvcli/}graphs/contributors">
-      <img src="https://contrib.rocks/image?repo=TrueSelph/jvcli">
+    <a href="https://github.com/TrueSelph/jvcli/graphs/contributors">
+        <img src="https://contrib.rocks/image?repo=TrueSelph/jvcli" />
    </a>
 </p>
 </details>
