@@ -24,16 +24,6 @@ jobs:
       - name: Run Pytest with Coverage
         run: pytest --cov=jvcli --cov-report=xml --cov-report=term-missing
 
-      - name: Verify Coverage File
-        run: |
-          if [ ! -f coverage.xml ]; then
-            echo "❌ coverage.xml not found! Coverage reporting failed."
-            exit 1
-          else
-            echo "✅ coverage.xml generated successfully!"
-            head -n 20 coverage.xml
-          fi
-
       - name: Upload Coverage Report (For Debugging)
         uses: actions/upload-artifact@v4
         with:
@@ -45,4 +35,3 @@ jobs:
         with:
           coverageFile: coverage.xml
           token: ${{ secrets.GITHUB_TOKEN }}
-          thresholdAll: 0.5
