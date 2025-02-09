@@ -29,6 +29,7 @@ test_source/
 .coverage
 .session
 *.session.db
+mydatabase
 .DS_Store
 .vscode
 build

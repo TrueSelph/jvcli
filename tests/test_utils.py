@@ -9,6 +9,7 @@ import pytest
 from pytest_mock import MockerFixture
 
 from jvcli.utils import (
+    TEMPLATES_DIR,
     compress_package_to_tgz,
     is_version_compatible,
     validate_dependencies,
@@ -103,8 +104,8 @@ class TestUtils:
         mocker.patch("os.path.exists", return_value=True)
 
         info_data = {"name": "test", "invalid_key": "value"}
-        with pytest.raises(ValueError):
-            validate_yaml_format(info_data, "action")
+
+        assert not validate_yaml_format(info_data, "action")
 
         mock_open.assert_called_once()
 
@@ -178,6 +179,7 @@ class TestUtils:
         assert is_version_compatible("3.0.0", "^2.0.0") is False
         assert is_version_compatible("0.2.5", "^0.2.0") is True
         assert is_version_compatible("0.3.0", "^0.2.0") is False
+        assert is_version_compatible("0.0.6", "^0.0.4") is False
 
     def test_compress_package_to_tgz_preserves_structure_and_permissions(
         self, mocker: MockerFixture
@@ -234,16 +236,9 @@ class TestUtils:
         self, mocker: MockerFixture
     ) -> None:
         """validate_dependencies verifies jivas version compatibility."""
-        # Mock the RegistryAPI.download_package method
-        mock_download_package = mocker.patch(
-            "jvcli.api.RegistryAPI.download_package", return_value={}
-        )
-
-        # Mock the version of jivas
-        mocker.patch("jvcli.__version__", "2.1.0")
 
         # Define dependencies with jivas version specifier
-        dependencies = {"jivas": ">=2.0.0,<3.0.0", "other_dep": ">=1.0.0"}
+        dependencies = {"jivas": ">=2.0.0,<3.0.0"}
 
         # Call validate_dependencies and expect no exception for compatible jivas version
         try:
@@ -251,7 +246,145 @@ class TestUtils:
         except ValueError as e:
             pytest.fail(f"validate_dependencies raised ValueError unexpectedly: {e}")
 
-        # Assert that download_package was called for non-jivas dependencies
-        mock_download_package.assert_called_once_with(
-            name="other_dep", version=">=1.0.0", suppress_error=True
+    def test_validate_yaml_format_for_daf_and_agent(
+        self, mocker: MockerFixture
+    ) -> None:
+        """validate_yaml_format correctly validates info.yaml for 'daf' and 'agent' types."""
+        mock_open = mocker.patch(
+            "builtins.open", mocker.mock_open(read_data="name: test\nversion: 1.0.0")
         )
+        mocker.patch("yaml.safe_load", return_value={"name": "", "version": ""})
+        mocker.patch("os.path.exists", return_value=True)
+
+        info_data = {"name": "test", "version": "1.0.0"}
+
+        # Test for 'daf' type
+        assert validate_yaml_format(info_data, "daf") is True
+        mock_open.assert_called_once_with(
+            os.path.join(TEMPLATES_DIR, "2.0.0", "agent_info.yaml"), "r"
+        )
+
+        # Reset mock for next test
+        mock_open.reset_mock()
+
+        # Test for 'agent' type
+        assert validate_yaml_format(info_data, "agent") is True
+        mock_open.assert_called_once_with(
+            os.path.join(TEMPLATES_DIR, "2.0.0", "agent_info.yaml"), "r"
+        )
+
+    def test_template_for_version_not_found(self, mocker: MockerFixture) -> None:
+        """validate_yaml_format should return False and print a message if the template for the specified version is not found."""
+        mocker.patch("os.path.exists", return_value=False)
+        mock_secho = mocker.patch("click.secho")
+
+        info_data = {"name": "test", "version": "1.0.0"}
+        result = validate_yaml_format(info_data, "action", "2.0.0")
+
+        assert result is False
+        mock_secho.assert_called_once_with(
+            "Template for version 2.0.0 not found.", fg="red"
+        )
+
+    def test_jivas_version_not_supported(self, mocker: MockerFixture) -> None:
+        """validate_dependencies raises ValueError for unsupported jivas version."""
+        # Mock the RegistryAPI.download_package method
+        mock_download_package = mocker.patch(
+            "jvcli.api.RegistryAPI.download_package", return_value={}
+        )
+
+        # Define dependencies with an unsupported jivas version specifier
+        dependencies = {"jivas": ">=3.0.0"}
+
+        # Expect a ValueError due to unsupported jivas version
+        with pytest.raises(
+            ValueError,
+            match="Dependencies not found in registry: \\['jivas >=3.0.0'\\]",
+        ):
+            validate_dependencies(dependencies)
+
+        # Assert that download_package was not called for jivas
+        mock_download_package.assert_not_called()
+
+    def test_validate_dependencies_jivas_not_found(self, mocker: MockerFixture) -> None:
+        """validate_dependencies raises ValueError when jivas package is not found."""
+
+        # Define dependencies with jivas and a version specifier
+        dependencies = {"jivas": "^1.0.0"}
+
+        # Expect a ValueError due to missing jivas package
+        with pytest.raises(
+            ValueError, match=r"Dependencies not found in registry: \['jivas \^1.0.0'\]"
+        ):
+            validate_dependencies(dependencies)
+
+    def test_validate_dependencies_with_action_dependencies(
+        self, mocker: MockerFixture
+    ) -> None:
+        """validate_dependencies should not raise an exception for action dependencies."""
+
+        mock_registry_api = mocker.patch("jvcli.utils.RegistryAPI")
+        mock_registry_api.download_package.return_value = {"file": "test_file"}
+
+        # Define dependencies with action dependencies
+        dependencies = {
+            "actions": {
+                "test_action": "^1.0.0",
+                "another_action": ">=2.0.0",
+            }
+        }
+
+        # Call validate_dependencies and expect no exception
+        try:
+            validate_dependencies(dependencies)
+        except ValueError as e:
+            pytest.fail(f"validate_dependencies raised ValueError unexpectedly: {e}")
+
+    def test_validate_dependencies_with_invalid_action_dependencies(
+        self, mocker: MockerFixture
+    ) -> None:
+        """validate_dependencies raises ValueError for invalid action dependencies."""
+
+        mock_registry_api = mocker.patch("jvcli.utils.RegistryAPI")
+        mock_registry_api.download_package.return_value = None
+
+        # Define dependencies with action dependencies
+        dependencies = {
+            "actions": {
+                "test_action": "^1.0.0",
+                "another_action": ">=2.0.0",
+            }
+        }
+
+        # Expect a ValueError due to missing action dependencies
+        with pytest.raises(ValueError) as exc_info:
+            validate_dependencies(dependencies)
+
+        expected_message = "Dependencies not found in registry: [\"actions {'test_action': '^1.0.0', 'another_action': '>=2.0.0'}\", \"actions {'test_action': '^1.0.0', 'another_action': '>=2.0.0'}\"]"
+        assert str(exc_info.value) == expected_message
+
+    def test_validate_dependencies_with_pip_dependencies(
+        self, mocker: MockerFixture
+    ) -> None:
+        """validate_dependencies should skip pip dependencies and not raise an exception."""
+
+        # Define dependencies with pip dependencies
+        dependencies = {"pip": ">=1.0.0"}
+
+        # Call validate_dependencies and expect no exception
+        try:
+            validate_dependencies(dependencies)
+        except ValueError as e:
+            pytest.fail(f"validate_dependencies raised ValueError unexpectedly: {e}")
+
+    def test_validate_dependencies_with_unknown_dependency_type(
+        self, mocker: MockerFixture
+    ) -> None:
+        """validate_dependencies raises ValueError for unknown dependency types."""
+
+        # Define dependencies with an unknown dependency type
+        dependencies = {"unknown": ">=1.0.0"}
+
+        # Expect a ValueError due to unknown dependency type
+        with pytest.raises(ValueError, match="Unknown dependency type: unknown"):
+            validate_dependencies(dependencies)
