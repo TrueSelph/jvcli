@@ -1,2 +1,3 @@
 recursive-include jvcli/client *
 recursive-include jvcli/templates/ *
+recursive-include jvcli/studio *
