@@ -4,11 +4,11 @@ import os
 
 import requests
 import streamlit as st
-from pages import analytics_page, chat_page, dashboard_page, graph_page
 from streamlit_router import StreamlitRouter
 
 from jvcli.client.lib.page import Page
 from jvcli.client.lib.utils import call_list_actions, call_list_agents, load_function
+from jvcli.client.pages import analytics_page, chat_page, dashboard_page, graph_page
 
 JIVAS_URL = os.environ.get("JIVAS_URL", "http://localhost:8000")
 

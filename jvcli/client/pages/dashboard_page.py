@@ -1,9 +1,10 @@
 """Render the dashboard page of the jvclient with actions data."""
 
 import streamlit as st
-from lib.page import Page
 from streamlit_elements import dashboard, elements, mui
 from streamlit_router import StreamlitRouter
+
+from jvcli.client.lib.page import Page
 
 
 def render(router: StreamlitRouter) -> None:

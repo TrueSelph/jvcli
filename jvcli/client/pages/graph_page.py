@@ -1,9 +1,11 @@
 """Render the Jivas Studio page in an iframe."""
 
+import os
+
 import streamlit as st
 from streamlit_router import StreamlitRouter
 
-from jvcli.client.app import JIVAS_STUDIO_URL
+JIVAS_STUDIO_URL = os.environ.get("JIVAS_STUDIO_URL", "http://localhost:8989")
 
 
 def render(router: StreamlitRouter) -> None:
