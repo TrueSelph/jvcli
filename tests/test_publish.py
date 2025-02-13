@@ -369,6 +369,49 @@ class TestPublishCommand:
         assert result.exit_code != 0
         assert isinstance(result.exception, ValueError)
 
+    def test_package_with_mismatched_namespace(self, mocker: MockerFixture) -> None:
+        """Test preparing a package with an output directory."""
+        mock_load_token = mocker.patch("jvcli.commands.publish.load_token")
+        mock_load_token.return_value = {"token": "test-token"}
+
+        mock_os_path = mocker.patch("jvcli.commands.publish.os.path")
+        mock_os_path.isdir.return_value = True
+        mock_os_path.exists.return_value = True
+        mock_os_path.join.return_value = "test/path/info.yaml"
+
+        mocker.patch(
+            "builtins.open",
+            mocker.mock_open(
+                read_data="package:\n  name: test/test_action\n  dependencies: {}"
+            ),
+        )
+
+        mock_yaml = mocker.patch("jvcli.commands.publish.yaml")
+        mock_yaml.safe_load.return_value = {
+            "package": {
+                "name": "test/test_action",
+                "dependencies": {},
+            }
+        }
+
+        mock_validate_yaml_format = mocker.patch(
+            "jvcli.commands.publish.validate_yaml_format"
+        )
+        mock_validate_yaml_format.return_value = True
+
+        mocker.patch("jvcli.commands.publish.validate_package_name")
+
+        runner = CliRunner()
+        result = runner.invoke(
+            publish_action, ["--path", "test/path", "--namespace", "different"]
+        )
+
+        assert result.exit_code == 0
+        assert (
+            "Error validating namespace: You provided 'different', but 'test' was found in the package info file."
+            in result.output
+        )
+
     def test_prepare_package_with_output_dir(self, mocker: MockerFixture) -> None:
         """Test preparing a package with an output directory."""
         mock_compress = mocker.patch("jvcli.commands.publish.compress_package_to_tgz")
