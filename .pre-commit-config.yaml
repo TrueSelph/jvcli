@@ -6,6 +6,7 @@ repos:
         args: [--allow-multiple-documents]
       - id: check-json
       - id: trailing-whitespace
+        exclude: "^venv/"
   - repo: https://github.com/psf/black
     rev: 24.8.0
     hooks:
