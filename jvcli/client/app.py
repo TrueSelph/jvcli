@@ -104,7 +104,7 @@ def main() -> None:
             agents,
             index=selected_agent_index,
             placeholder="Select agent...",
-            format_func=lambda x: x["label"],
+            format_func=lambda x: x["label"] if "label" in x else x,
             on_change=handle_agent_selection,
             key="selected_agent",
         )
@@ -143,7 +143,6 @@ def main() -> None:
                             label=package["meta"]["title"],
                             path=f'/{Page.normalize_label(package["meta"]["title"])}',
                         ).st_button()
-
     router.serve()
 
 

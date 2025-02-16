@@ -283,49 +283,6 @@ def get_user_info() -> dict:
     }
 
 
-def open_url(url: str) -> None:
-    """Creates a HTML/JS snippet to redirect the current page to a specified URL."""
-    # Create an HTML link with JavaScript to change the current window's location
-    redirect_html = f'<a href="{url}" target="_self">Click here if not redirected automatically.</a>'
-    js_redirect = f"""
-    <script type="text/javascript">
-        window.location.href="{url}";
-    </script>
-    {redirect_html}
-    """
-    st.markdown(js_redirect, unsafe_allow_html=True)
-
-
-def allow_top_navigation() -> None:
-    """Allow top navigation by modifying the sandbox attribute of iframes."""
-    # Streamlit HTML component to inject JavaScript
-    st.components.v1.html(
-        """
-        <script>
-            // Function to modify the sandbox attribute of the iframe
-            function alterIframeSandbox() {
-                // Find the iframe by title
-                const iframes = document.querySelectorAll('iframe');
-                iframes.forEach(iframe => {
-
-                    // Modify the sandbox attribute to add the specified policies
-                    let sandboxAttr = iframe.getAttribute('sandbox');
-                    sandboxAttr += ' allow-top-navigation-by-user-activation allow-top-navigation';
-                    iframe.setAttribute('sandbox', sandboxAttr);
-
-                });
-            }
-
-            // Execute the function once the DOM is fully loaded
-            document.addEventListener('DOMContentLoaded', (event) => {
-                alterIframeSandbox();
-            });
-        </script>
-    """,
-        height=0,
-    )
-
-
 def decode_base64_image(base64_string: str) -> Image:
     """Decode a base64 string into an image."""
     # Decode the base64 string
