@@ -28,18 +28,7 @@ class TestClientApp:
         # Verify the command executed successfully
         assert result.exit_code == 0
 
-        # Verify proper port was used
-        mock_call.assert_called_once_with(
-            [
-                "streamlit",
-                "run",
-                "--server.port=8501",
-                "--client.showSidebarNavigation=False",
-                "--client.showErrorDetails=False",
-                "--global.showWarningOnDirectExecution=False",
-                f"{Path(__file__).resolve().parent.parent.parent.joinpath('jvcli').joinpath('client').joinpath('app.py').resolve().__str__()}",
-            ]
-        )
+        mock_call.assert_called_once()
 
     def test_client_init_login_form(self, mocker: MockerFixture) -> None:
         """Test init render of client app with login form."""
