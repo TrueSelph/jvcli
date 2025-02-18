@@ -49,7 +49,7 @@ def render(router: StreamlitRouter) -> None:
                     if action_type == "interact_action":
                         avatar_text = "I"
 
-                    if action["enabled"]:
+                    if action.get("enabled", False):
                         enabled_color = "green"
                         enabled_text = ""
 

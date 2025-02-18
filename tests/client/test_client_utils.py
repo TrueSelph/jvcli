@@ -524,7 +524,7 @@ def dummy_function():
 
     def test_call_action_walker_exec_unauthorized(self, mocker: MockerFixture) -> None:
         """Test call_action_walker_exec returns empty list on 401 status code."""
-        # Mock get_user_info to return a valid token
+        # Mock get_user_info to return valid token
         mocker.patch(
             "jvcli.client.lib.utils.get_user_info",
             return_value={
@@ -534,16 +534,36 @@ def dummy_function():
             },
         )
 
-        # Mock requests.post to simulate a 401 Unauthorized response
-        mock_post = mocker.patch("requests.post")
-        mock_post.return_value.status_code = 401
+        # Mock successful API response
+        mock_response = mocker.Mock()
+        mock_response.status_code = 401
+        mock_response.json.return_value = ["result1", "result2"]
+        mock_post = mocker.patch("requests.post", return_value=mock_response)
 
-        # Call the function
-        result = call_action_walker_exec(
-            "test_agent_id", "test_module_root", "test_walker"
+        # Test parameters
+        agent_id = "test_agent"
+        module_root = "test_module"
+        walker = "test_walker"
+        args = {"arg1": "value1"}
+        files = [("file1.txt", b"content", "text/plain")]
+
+        # Call function
+        result = call_action_walker_exec(agent_id, module_root, walker, args, files)
+
+        # Verify request was made correctly
+        mock_post.assert_called_once_with(
+            url=f"{JIVAS_URL}/walker/action/walker",
+            headers={"Authorization": "Bearer test_token"},
+            data={
+                "agent_id": agent_id,
+                "module_root": module_root,
+                "walker": walker,
+                "args": json.dumps(args),
+            },
+            files=[("attachments", ("file1.txt", b"content", "text/plain"))],
         )
 
-        # Assert that the result is an empty list
+        # Verify result
         assert result == []
 
     def test_call_action_walker_exec_exception_handling(

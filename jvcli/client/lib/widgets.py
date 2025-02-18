@@ -1,10 +1,9 @@
 """Streamlit widgets for JVCLI client app."""
 
-from typing import Any, List, Optional, Tuple
+from typing import Any, Optional
 
 import streamlit as st
 import yaml
-from streamlit_elements import mui
 
 from jvcli.client.lib.utils import call_get_action, call_update_action
 
@@ -214,9 +213,12 @@ def dynamic_form(
                     key=f"{session_key}_{item['id']}_{field_name}",
                 )
             elif field_type == "number":
+                field_value = item["fields"][field_name]
+                if field_value == "":
+                    field_value = 0
                 item["fields"][field_name] = row_cols[i].number_input(
                     field_name,
-                    value=int(item["fields"][field_name]),
+                    value=int(field_value),
                     key=f"{session_key}_{item['id']}_{field_name}",
                 )
             elif field_type == "select":
@@ -248,43 +250,3 @@ def dynamic_form(
 
     # Return the current value of the dynamic form
     return [item["fields"] for item in st.session_state[session_key]]
-
-
-def card_grid(cards_data: List[dict], columns: int = 3) -> None:
-    """
-    Display a grid of cards with titles, bodies, and footers.
-
-    Parameters:
-    - cards_data: A list where each element is a dictionary representing a card.
-                  Each dictionary should have keys 'title', 'body', and 'footer'.
-                  'body' is a list of dictionaries with 'label' and 'value'.
-                  'footer' is a list of dictionaries with 'label' and an 'on_click' function or a URL.
-    - columns: The number of columns to use for the card grid display.
-    """
-    # Create a grid layout with a specified number of columns
-    grid: List[List[Tuple[int, dict]]] = [[] for _ in range(columns)]
-
-    # Distribute cards data into the grid layout
-    for idx, card in enumerate(cards_data):
-        column_index = idx % columns
-        grid[column_index].append((idx, card))
-
-    # Render the grid of cards
-    cols = st.columns(columns)
-    for col_idx, cards_in_column in enumerate(grid):
-        with cols[col_idx]:
-            for _card_idx, card in cards_in_column:
-                st.subheader(card["title"])
-                for item in card.get("body", []):
-                    if item["label"]:
-                        st.markdown(f"**{item['label']}:** {item['value']}")
-                    else:
-                        st.markdown(f"{item['value']}")
-
-                    # Card footer with action buttons
-                    with mui.CardActions(disableSpacing=True):
-                        for _button_idx, button in enumerate(card.get("footer", [])):
-                            if "page" in button:
-                                # Example button opening a URL
-                                with mui.Paper:
-                                    button["page"].link()

@@ -32,53 +32,50 @@ def render(router: StreamlitRouter) -> None:
         ),
     )
 
+    (start_date, end_date) = date_range
+
+    # rerender_metrics = render_metrics()
+    col1, col2, col3 = st.columns(3)
+    timezone = st_javascript(
+        """await (async () => {
+                const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                console.log(userTimezone)
+                return userTimezone
+    })().then(returnValue => returnValue)"""
+    )
+
     try:
-        (start_date, end_date) = date_range
-
-        # rerender_metrics = render_metrics()
-        col1, col2, col3 = st.columns(3)
-        timezone = st_javascript(
-            """await (async () => {
-                    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                    console.log(userTimezone)
-                    return userTimezone
-        })().then(returnValue => returnValue)"""
-        )
-
-        try:
-            selected_agent = st.session_state.get("selected_agent")
-            if selected_agent and end_date > start_date:
-                interactions_chart(
-                    token=ctx["token"],
-                    agent_id=selected_agent["id"],
-                    start_date=start_date,
-                    end_date=end_date,
-                    metric_col=col1,
-                    timezone=timezone,
-                )
-                users_chart(
-                    token=ctx["token"],
-                    agent_id=selected_agent["id"],
-                    start_date=start_date,
-                    end_date=end_date,
-                    metric_col=col2,
-                    timezone=timezone,
-                )
-                channels_chart(
-                    token=ctx["token"],
-                    agent_id=selected_agent["id"],
-                    start_date=start_date,
-                    end_date=end_date,
-                    metric_col=col3,
-                    timezone=timezone,
-                )
-            else:
-                st.text("Invalid date range")
-        except Exception as e:
-            st.text("Unable to render charts")
-            print(e)
-    except ValueError:
-        st.text("Invalid date range")
+        selected_agent = st.session_state.get("selected_agent")
+        if selected_agent and end_date > start_date:
+            interactions_chart(
+                token=ctx["token"],
+                agent_id=selected_agent["id"],
+                start_date=start_date,
+                end_date=end_date,
+                metric_col=col1,
+                timezone=timezone,
+            )
+            users_chart(
+                token=ctx["token"],
+                agent_id=selected_agent["id"],
+                start_date=start_date,
+                end_date=end_date,
+                metric_col=col2,
+                timezone=timezone,
+            )
+            channels_chart(
+                token=ctx["token"],
+                agent_id=selected_agent["id"],
+                start_date=start_date,
+                end_date=end_date,
+                metric_col=col3,
+                timezone=timezone,
+            )
+        else:
+            st.text("Invalid date range")
+    except Exception as e:
+        st.text("Unable to render charts")
+        print(e)
 
 
 def interactions_chart(
