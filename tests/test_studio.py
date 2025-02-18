@@ -28,7 +28,7 @@ class TestStudio:
         mock_path_instance = mocker.MagicMock()
         mock_path.return_value = mock_path_instance
         mock_path_instance.resolve.return_value.parent.parent.joinpath.return_value = (
-            "mock/client/path"
+            "mock/studio/path"
         )
 
         # Mock click.echo

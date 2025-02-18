@@ -90,7 +90,7 @@ def launch(port: int) -> None:
     app.add_api_route("/graph", endpoint=get_graph, methods=["GET"])
     app.add_api_route("/users", endpoint=get_users, methods=["GET"])
 
-    client_dir = Path(__file__).resolve().parent.parent.joinpath("client")
+    client_dir = Path(__file__).resolve().parent.parent.joinpath("studio")
     app.mount("/", StaticFiles(directory=client_dir, html=True), name="studio")
 
     run(app, host="0.0.0.0", port=port)
