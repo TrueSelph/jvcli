@@ -7,6 +7,7 @@ from pyaml import yaml
 
 from jvcli.api import RegistryAPI
 from jvcli.auth import load_token
+from typing import Optional
 
 
 @click.group()
@@ -18,7 +19,12 @@ def info() -> None:
 @info.command(name="action")
 @click.argument("name")
 @click.argument("version", required=False)
-def get_action_info(name: str, version: str) -> None:
+@click.option(
+    "--api-key",
+    required=False,
+    help="API key for authentication.",
+)
+def get_action_info(name: str, version: str, api_key: Optional[str] = None) -> None:
     """
     Get info for an action package by name and version.
     If version is not provided, the latest version will be fetched.
@@ -33,7 +39,9 @@ def get_action_info(name: str, version: str) -> None:
 
     # Use the API function to fetch the action
     try:
-        package_info = RegistryAPI.get_package_info(name, version, token=token)
+        package_info = RegistryAPI.get_package_info(
+            name, version, token=token, api_key=api_key
+        )
 
         if not package_info:
             click.secho("Failed to locate the action package.", fg="red")
@@ -56,7 +64,12 @@ def get_action_info(name: str, version: str) -> None:
 @info.command(name="agent")
 @click.argument("name")
 @click.argument("version", required=False)
-def get_agent_info(name: str, version: str) -> None:
+@click.option(
+    "--api-key",
+    required=False,
+    help="API key for authentication.",
+)
+def get_agent_info(name: str, version: str, api_key: Optional[str] = None) -> None:
     """
     Get info for an agent package by name and version.
     If version is not provided, the latest version will be fetched.
@@ -71,7 +84,9 @@ def get_agent_info(name: str, version: str) -> None:
 
     # Use the API function to fetch the agent
     try:
-        package_info = RegistryAPI.get_package_info(name, version, token=token)
+        package_info = RegistryAPI.get_package_info(
+            name, version, token=token, api_key=api_key
+        )
 
         if not package_info:
             click.secho("Failed to locate the agent package.", fg="red")

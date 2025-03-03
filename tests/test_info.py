@@ -26,7 +26,7 @@ class TestInfoCommand:
 
         assert result.exit_code == 0
         mock_registry_api.get_package_info.assert_called_once_with(
-            "test_action", "1.0.0", token="test-token"
+            "test_action", "1.0.0", token="test-token", api_key=None
         )
         assert mock_yaml.safe_dump.call_count == 1
         assert mock_click.secho.call_count == 2
@@ -46,7 +46,7 @@ class TestInfoCommand:
 
         assert result.exit_code == 0
         mock_registry_api.assert_called_once_with(
-            "non_existent_package", "1.0.0", token="fake-token"
+            "non_existent_package", "1.0.0", token="fake-token", api_key=None
         )
         mock_click_secho.assert_called_with(
             "Failed to locate the action package.", fg="red"
@@ -69,7 +69,7 @@ class TestInfoCommand:
 
         assert result.exit_code == 0
         mock_registry_api.assert_called_once_with(
-            "invalid_action", "invalid_version", token="test-token"
+            "invalid_action", "invalid_version", token="test-token", api_key=None
         )
         mock_click_secho.assert_called_with(
             "Failed to locate the action package.", fg="red"
@@ -93,7 +93,7 @@ class TestInfoCommand:
 
         assert result.exit_code == 0
         mock_registry_api.assert_called_once_with(
-            "test_action", "latest", token="fake-token"
+            "test_action", "latest", token="fake-token", api_key=None
         )
         mock_click_echo.assert_called_once_with(
             "Checking the latest version of the action..."
@@ -137,7 +137,7 @@ class TestInfoCommand:
 
         assert result.exit_code == 0
         mock_registry_api.get_package_info.assert_called_once_with(
-            "test_agent", "1.0.0", token="test-token"
+            "test_agent", "1.0.0", token="test-token", api_key=None
         )
         assert mock_yaml.safe_dump.call_count == 1
         assert mock_click.secho.call_count == 2
@@ -157,7 +157,7 @@ class TestInfoCommand:
 
         assert result.exit_code == 0
         mock_registry_api.assert_called_once_with(
-            "non_existent_agent", "1.0.0", token="fake-token"
+            "non_existent_agent", "1.0.0", token="fake-token", api_key=None
         )
         mock_click_secho.assert_called_with(
             "Failed to locate the agent package.", fg="red"
@@ -180,7 +180,7 @@ class TestInfoCommand:
 
         assert result.exit_code == 0
         mock_registry_api.assert_called_once_with(
-            "invalid_agent", "invalid_version", token="test-token"
+            "invalid_agent", "invalid_version", token="test-token", api_key=None
         )
         mock_click_secho.assert_called_with(
             "Failed to locate the agent package.", fg="red"
@@ -202,7 +202,7 @@ class TestInfoCommand:
 
         assert result.exit_code == 0
         mock_registry_api.assert_called_once_with(
-            "test_agent", "latest", token="fake-token"
+            "test_agent", "latest", token="fake-token", api_key=None
         )
         mock_click_echo.assert_called_once_with(
             "Checking the latest version of the agent package..."
@@ -228,3 +228,51 @@ class TestInfoCommand:
         mock_click_secho.assert_called_with(
             "Error retrieving the agent package info: Test exception", fg="red"
         )
+
+    def test_get_agent_info_with_api_key(self, mocker: MockerFixture) -> None:
+        """Test getting agent info using an API key."""
+        mock_load_token = mocker.patch("jvcli.commands.info.load_token")
+        mock_load_token.return_value = {"token": "test-token"}
+
+        mock_registry_api = mocker.patch("jvcli.commands.info.RegistryAPI")
+        mock_package_info = {"name": "test_agent", "version": "1.0.0"}
+        mock_registry_api.get_package_info.return_value = mock_package_info
+
+        mock_yaml = mocker.patch("jvcli.commands.info.yaml")
+        mock_click = mocker.patch("jvcli.commands.info.click")
+
+        runner = CliRunner()
+        result = runner.invoke(
+            get_agent_info, ["test_agent", "1.0.0", "--api-key", "test-api-key"]
+        )
+
+        assert result.exit_code == 0
+        mock_registry_api.get_package_info.assert_called_once_with(
+            "test_agent", "1.0.0", token="test-token", api_key="test-api-key"
+        )
+        assert mock_yaml.safe_dump.call_count == 1
+        assert mock_click.secho.call_count == 2
+
+    def test_get_action_info_with_api_key(self, mocker: MockerFixture) -> None:
+        """Test getting action info using an API key."""
+        mock_load_token = mocker.patch("jvcli.commands.info.load_token")
+        mock_load_token.return_value = {"token": "test-token"}
+
+        mock_registry_api = mocker.patch("jvcli.commands.info.RegistryAPI")
+        mock_package_info = {"name": "test_action", "version": "1.0.0"}
+        mock_registry_api.get_package_info.return_value = mock_package_info
+
+        mock_yaml = mocker.patch("jvcli.commands.info.yaml")
+        mock_click = mocker.patch("jvcli.commands.info.click")
+
+        runner = CliRunner()
+        result = runner.invoke(
+            get_action_info, ["test_action", "1.0.0", "--api-key", "test-api-key"]
+        )
+
+        assert result.exit_code == 0
+        mock_registry_api.get_package_info.assert_called_once_with(
+            "test_action", "1.0.0", token="test-token", api_key="test-api-key"
+        )
+        assert mock_yaml.safe_dump.call_count == 1
+        assert mock_click.secho.call_count == 2
