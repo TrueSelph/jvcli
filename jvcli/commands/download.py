@@ -10,6 +10,7 @@ from pyaml import yaml
 
 from jvcli.api import RegistryAPI
 from jvcli.auth import load_token
+from typing import Optional
 
 
 @click.group()
@@ -26,9 +27,16 @@ def download() -> None:
     required=False,
     help="Directory to download the action.",
 )
-def download_action(name: str, version: str, path: str) -> None:
+@click.option(
+    "--api-key",
+    required=False,
+    help="API key for authentication.",
+)
+def download_action(
+    name: str, version: str, path: str, api_key: Optional[str] = None
+) -> None:
     """Download a JIVAS action package."""
-    _download_package(name, version, path, "action")
+    _download_package(name, version, path, "action", api_key)
 
 
 @download.command(name="agent")
@@ -39,12 +47,21 @@ def download_action(name: str, version: str, path: str) -> None:
     required=False,
     help="Directory to download the agent.",
 )
-def download_agent(name: str, version: str, path: str) -> None:
+@click.option(
+    "--api-key",
+    required=False,
+    help="API key for authentication.",
+)
+def download_agent(
+    name: str, version: str, path: str, api_key: Optional[str] = None
+) -> None:
     """Download a JIVAS agent package."""
-    _download_package(name, version, path, "agent")
+    _download_package(name, version, path, "agent", api_key)
 
 
-def _download_package(name: str, version: str, path: str, pkg_type: str) -> None:
+def _download_package(
+    name: str, version: str, path: str, pkg_type: str, api_key: Optional[str] = None
+) -> None:
     token = load_token().get("token")
 
     if not version:
@@ -53,7 +70,9 @@ def _download_package(name: str, version: str, path: str, pkg_type: str) -> None
     click.echo(f"Downloading {name} version {version}...")
 
     try:
-        package_data = RegistryAPI.download_package(name, version, token=token)
+        package_data = RegistryAPI.download_package(
+            name, version, token=token, api_key=api_key
+        )
         if not package_data:
             click.secho("Failed to download the package.", fg="red")
             return
