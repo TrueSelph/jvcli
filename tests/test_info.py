@@ -26,7 +26,11 @@ class TestInfoCommand:
 
         assert result.exit_code == 0
         mock_registry_api.get_package_info.assert_called_once_with(
-            "test_action", "1.0.0", token="test-token", api_key=None
+            "test_action",
+            "1.0.0",
+            token="test-token",
+            # pragma: allowlist secret
+            api_key=None,
         )
         assert mock_yaml.safe_dump.call_count == 1
         assert mock_click.secho.call_count == 2
@@ -46,7 +50,11 @@ class TestInfoCommand:
 
         assert result.exit_code == 0
         mock_registry_api.assert_called_once_with(
-            "non_existent_package", "1.0.0", token="fake-token", api_key=None
+            "non_existent_package",
+            "1.0.0",
+            token="fake-token",
+            # pragma: allowlist secret
+            api_key=None,
         )
         mock_click_secho.assert_called_with(
             "Failed to locate the action package.", fg="red"
@@ -69,7 +77,11 @@ class TestInfoCommand:
 
         assert result.exit_code == 0
         mock_registry_api.assert_called_once_with(
-            "invalid_action", "invalid_version", token="test-token", api_key=None
+            "invalid_action",
+            "invalid_version",
+            token="test-token",
+            # pragma: allowlist secret
+            api_key=None,
         )
         mock_click_secho.assert_called_with(
             "Failed to locate the action package.", fg="red"
@@ -93,7 +105,11 @@ class TestInfoCommand:
 
         assert result.exit_code == 0
         mock_registry_api.assert_called_once_with(
-            "test_action", "latest", token="fake-token", api_key=None
+            "test_action",
+            "latest",
+            token="fake-token",
+            # pragma: allowlist secret
+            api_key=None,
         )
         mock_click_echo.assert_called_once_with(
             "Checking the latest version of the action..."
@@ -137,7 +153,11 @@ class TestInfoCommand:
 
         assert result.exit_code == 0
         mock_registry_api.get_package_info.assert_called_once_with(
-            "test_agent", "1.0.0", token="test-token", api_key=None
+            "test_agent",
+            "1.0.0",
+            token="test-token",
+            # pragma: allowlist secret
+            api_key=None,
         )
         assert mock_yaml.safe_dump.call_count == 1
         assert mock_click.secho.call_count == 2
@@ -157,7 +177,11 @@ class TestInfoCommand:
 
         assert result.exit_code == 0
         mock_registry_api.assert_called_once_with(
-            "non_existent_agent", "1.0.0", token="fake-token", api_key=None
+            "non_existent_agent",
+            "1.0.0",
+            token="fake-token",
+            # pragma: allowlist secret
+            api_key=None,
         )
         mock_click_secho.assert_called_with(
             "Failed to locate the agent package.", fg="red"
@@ -180,7 +204,11 @@ class TestInfoCommand:
 
         assert result.exit_code == 0
         mock_registry_api.assert_called_once_with(
-            "invalid_agent", "invalid_version", token="test-token", api_key=None
+            "invalid_agent",
+            "invalid_version",
+            token="test-token",
+            # pragma: allowlist secret
+            api_key=None,
         )
         mock_click_secho.assert_called_with(
             "Failed to locate the agent package.", fg="red"
@@ -202,7 +230,11 @@ class TestInfoCommand:
 
         assert result.exit_code == 0
         mock_registry_api.assert_called_once_with(
-            "test_agent", "latest", token="fake-token", api_key=None
+            "test_agent",
+            "latest",
+            token="fake-token",
+            # pragma: allowlist secret
+            api_key=None,
         )
         mock_click_echo.assert_called_once_with(
             "Checking the latest version of the agent package..."
@@ -248,7 +280,11 @@ class TestInfoCommand:
 
         assert result.exit_code == 0
         mock_registry_api.get_package_info.assert_called_once_with(
-            "test_agent", "1.0.0", token="test-token", api_key="test-api-key"
+            "test_agent",
+            "1.0.0",
+            token="test-token",
+            # pragma: allowlist secret
+            api_key="test-api-key",
         )
         assert mock_yaml.safe_dump.call_count == 1
         assert mock_click.secho.call_count == 2
@@ -272,7 +308,11 @@ class TestInfoCommand:
 
         assert result.exit_code == 0
         mock_registry_api.get_package_info.assert_called_once_with(
-            "test_action", "1.0.0", token="test-token", api_key="test-api-key"
+            "test_action",
+            "1.0.0",
+            token="test-token",
+            # pragma: allowlist secret
+            api_key="test-api-key",
         )
         assert mock_yaml.safe_dump.call_count == 1
         assert mock_click.secho.call_count == 2

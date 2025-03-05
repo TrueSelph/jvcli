@@ -48,7 +48,11 @@ class TestDownload:
 
         assert result.exit_code == 0
         mock_registry_api.download_package.assert_called_once_with(
-            "test_action", "1.0.0", token="test-token", api_key=None
+            "test_action",
+            "1.0.0",
+            token="test-token",
+            # pragma: allowlist secret
+            api_key=None,
         )
         mock_requests.get.assert_called_once_with("http://test.com/package.tar.gz")
         mock_make_dirs.assert_called_once_with("./actions/test_action", exist_ok=True)
@@ -78,7 +82,11 @@ class TestDownload:
 
         assert result.exit_code == 0
         mock_registry_api.assert_called_once_with(
-            "test_action", "latest", token="fake-token", api_key=None
+            "test_action",
+            "latest",
+            token="fake-token",
+            # pragma: allowlist secret
+            api_key=None,
         )
         mock_click_echo.assert_any_call("Downloading test_action version latest...")
 
@@ -245,7 +253,11 @@ class TestDownload:
 
         assert result.exit_code == 0
         mock_registry_api.download_package.assert_called_once_with(
-            "test_agent", "1.0.0", token="test-token", api_key=None
+            "test_agent",
+            "1.0.0",
+            token="test-token",
+            # pragma: allowlist secret
+            api_key=None,
         )
         mock_requests.get.assert_called_once_with("http://test.com/package.tar.gz")
         mock_make_dirs.assert_called_once_with("/custom/path/test_agent", exist_ok=True)
@@ -302,7 +314,11 @@ class TestDownload:
 
         assert result.exit_code == 0
         mock_registry_api.download_package.assert_called_once_with(
-            "test_action", "1.0.0", token="test-token", api_key="test-api-key"
+            "test_action",
+            "1.0.0",
+            token="test-token",
+            # pragma: allowlist secret
+            api_key="test-api-key",
         )
         mock_requests.get.assert_called_once_with("http://test.com/package.tar.gz")
         mock_make_dirs.assert_called_once_with(
@@ -357,7 +373,11 @@ class TestDownload:
         )
         assert result.exit_code == 0
         mock_registry_api.download_package.assert_called_once_with(
-            "test_agent", "1.0.0", token="test-token", api_key="test-api-key"
+            "test_agent",
+            "1.0.0",
+            token="test-token",
+            # pragma: allowlist secret
+            api_key="test-api-key",
         )
         mock_requests.get.assert_called_once_with("http://test.com/package.tar.gz")
         mock_make_dirs.assert_called_once_with("/custom/path/test_agent", exist_ok=True)
