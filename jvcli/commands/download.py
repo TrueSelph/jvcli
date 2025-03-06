@@ -3,6 +3,7 @@
 import io
 import os
 import tarfile
+from typing import Optional
 
 import click
 import requests
@@ -10,7 +11,6 @@ from pyaml import yaml
 
 from jvcli.api import RegistryAPI
 from jvcli.auth import load_token
-from typing import Optional
 
 
 @click.group()

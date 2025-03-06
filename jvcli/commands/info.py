@@ -1,13 +1,13 @@
 """Info command group for getting info about resources on the Jivas Package Repository."""
 
 import sys
+from typing import Optional
 
 import click
 from pyaml import yaml
 
 from jvcli.api import RegistryAPI
 from jvcli.auth import load_token
-from typing import Optional
 
 
 @click.group()
