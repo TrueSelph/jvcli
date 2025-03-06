@@ -1,19 +1,19 @@
 """Studio command group for deploying and interfacing with the Jivas Studio."""
 
-import click
-import jaclang  # Import is necessary to load the plugin
-from uvicorn import run
-from bson import ObjectId
+import json
 from pathlib import Path
-from fastapi import FastAPI, HTTPException, Depends
+from typing import Annotated
+
+import click
+from bson import ObjectId
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from jac_cloud.core.architype import NodeAnchor
-from fastapi.middleware.cors import CORSMiddleware
 from jac_cloud.jaseci.security import decrypt
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from typing import Annotated
-import json
+from uvicorn import run
 
 
 def get_nodes_and_edges(
@@ -22,9 +22,10 @@ def get_nodes_and_edges(
     depth: int,
     nodes: list,
     edges: list,
-    node_collection,
-    edge_collection,
-):
+    node_collection: NodeAnchor.Collection,
+    edge_collection: NodeAnchor.Collection,
+) -> None:
+    """Get nodes and edges recursively."""
     if current_depth >= depth:
         return
 
@@ -73,15 +74,19 @@ def get_nodes_and_edges(
 
 # need this because endpoint annotation differs depending on require auth flag
 class EndpointFactory:
+    """Factory for creating endpoints based on require_auth flag."""
+
     @staticmethod
-    def create_endpoints(require_auth: bool, security: HTTPBearer | None):
-        def validate_auth(credentials: HTTPAuthorizationCredentials):
+    def create_endpoints(require_auth: bool, security: HTTPBearer | None) -> tuple:
+        """Create endpoints based on require_auth flag."""
+
+        def validate_auth(credentials: HTTPAuthorizationCredentials) -> None:
             """Validate authentication token."""
             token = credentials.credentials
             if not token or not decrypt(token):
                 raise HTTPException(status_code=401, detail="Invalid token")
 
-        def get_graph_data(root: str):
+        def get_graph_data(root: str) -> dict:
             """Get graph nodes and edges data."""
             edge_collection = NodeAnchor.Collection.get_collection("edge")
             node_collection = NodeAnchor.Collection.get_collection("node")
@@ -108,7 +113,7 @@ class EndpointFactory:
 
             return {"nodes": nodes, "edges": edges}
 
-        def get_users_data():
+        def get_users_data() -> list:
             """Get users data."""
             user_collection = NodeAnchor.Collection.get_collection("user")
             return [
@@ -120,11 +125,11 @@ class EndpointFactory:
                 for user in user_collection.find()
             ]
 
-        def get_node_connections(node_id: str, depth: int):
+        def get_node_connections(node_id: str, depth: int) -> dict:
             nid = node_id.split(":")[-1]
             current_depth = 0
-            nodes = []
-            edges = []
+            nodes: list = []
+            edges: list = []
 
             edge_collection = NodeAnchor.Collection.get_collection("edge")
             node_collection = NodeAnchor.Collection.get_collection("node")
@@ -143,17 +148,17 @@ class EndpointFactory:
 
         if not require_auth:
 
-            async def graph_endpoint(root: str):
+            async def graph_endpoint(root: str) -> JSONResponse:
                 return JSONResponse(
                     content=json.loads(json.dumps(get_graph_data(root), default=str))
                 )
 
-            async def users_endpoint():
+            async def users_endpoint() -> JSONResponse:
                 return JSONResponse(
                     content=json.loads(json.dumps(get_users_data(), default=str))
                 )
 
-            async def node_endpoint(node_id: str, depth: int):
+            async def node_endpoint(node_id: str, depth: int) -> JSONResponse:
                 return JSONResponse(
                     content=json.loads(
                         json.dumps(get_node_connections(node_id, depth), default=str)
@@ -167,7 +172,7 @@ class EndpointFactory:
             async def guarded_graph_endpoint(
                 root: str,
                 credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
-            ):
+            ) -> JSONResponse:
                 validate_auth(credentials)
                 return JSONResponse(
                     content=json.loads(json.dumps(get_graph_data(root), default=str))
@@ -175,7 +180,7 @@ class EndpointFactory:
 
             async def guarded_users_endpoint(
                 credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
-            ):
+            ) -> JSONResponse:
                 validate_auth(credentials)
                 return JSONResponse(
                     content=json.loads(json.dumps(get_users_data(), default=str))
@@ -185,7 +190,7 @@ class EndpointFactory:
                 node_id: str,
                 depth: int,
                 credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
-            ):
+            ) -> JSONResponse:
                 validate_auth(credentials)
                 return JSONResponse(
                     content=json.loads(
@@ -197,7 +202,7 @@ class EndpointFactory:
 
 
 @click.group()
-def studio():
+def studio() -> None:
     """Group for managing Jivas Studio resources."""
     pass
 
@@ -207,7 +212,7 @@ def studio():
 @click.option(
     "--require-auth", default=False, help="Require authentication for studio api."
 )
-def launch(port, require_auth):
+def launch(port: int, require_auth: bool) -> None:
     """Launch the Jivas Studio on the specified port."""
     click.echo(f"Launching Jivas Studio on port {port}...")
 
@@ -234,7 +239,7 @@ def launch(port, require_auth):
     client_dir = (
         Path(__file__)
         .resolve()
-        .parent.parent.joinpath("client-auth" if require_auth else "client")
+        .parent.parent.joinpath("studio-auth" if require_auth else "studio")
     )
 
     app.mount(
