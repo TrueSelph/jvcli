@@ -29,8 +29,7 @@ class TestInfoCommand:
             "test_action",
             "1.0.0",
             token="test-token",
-            # pragma: allowlist secret
-            api_key=None,
+            api_key=None,  # pragma: allowlist secret
         )
         assert mock_yaml.safe_dump.call_count == 1
         assert mock_click.secho.call_count == 2
@@ -53,8 +52,7 @@ class TestInfoCommand:
             "non_existent_package",
             "1.0.0",
             token="fake-token",
-            # pragma: allowlist secret
-            api_key=None,
+            api_key=None,  # pragma: allowlist secret
         )
         mock_click_secho.assert_called_with(
             "Failed to locate the action package.", fg="red"
@@ -80,8 +78,7 @@ class TestInfoCommand:
             "invalid_action",
             "invalid_version",
             token="test-token",
-            # pragma: allowlist secret
-            api_key=None,
+            api_key=None,  # pragma: allowlist secret
         )
         mock_click_secho.assert_called_with(
             "Failed to locate the action package.", fg="red"
@@ -108,8 +105,7 @@ class TestInfoCommand:
             "test_action",
             "latest",
             token="fake-token",
-            # pragma: allowlist secret
-            api_key=None,
+            api_key=None,  # pragma: allowlist secret
         )
         mock_click_echo.assert_called_once_with(
             "Checking the latest version of the action..."
@@ -156,8 +152,7 @@ class TestInfoCommand:
             "test_agent",
             "1.0.0",
             token="test-token",
-            # pragma: allowlist secret
-            api_key=None,
+            api_key=None,  # pragma: allowlist secret
         )
         assert mock_yaml.safe_dump.call_count == 1
         assert mock_click.secho.call_count == 2
@@ -180,8 +175,7 @@ class TestInfoCommand:
             "non_existent_agent",
             "1.0.0",
             token="fake-token",
-            # pragma: allowlist secret
-            api_key=None,
+            api_key=None,  # pragma: allowlist secret
         )
         mock_click_secho.assert_called_with(
             "Failed to locate the agent package.", fg="red"
@@ -207,8 +201,7 @@ class TestInfoCommand:
             "invalid_agent",
             "invalid_version",
             token="test-token",
-            # pragma: allowlist secret
-            api_key=None,
+            api_key=None,  # pragma: allowlist secret
         )
         mock_click_secho.assert_called_with(
             "Failed to locate the agent package.", fg="red"
@@ -233,8 +226,7 @@ class TestInfoCommand:
             "test_agent",
             "latest",
             token="fake-token",
-            # pragma: allowlist secret
-            api_key=None,
+            api_key=None,  # pragma: allowlist secret
         )
         mock_click_echo.assert_called_once_with(
             "Checking the latest version of the agent package..."
@@ -283,8 +275,7 @@ class TestInfoCommand:
             "test_agent",
             "1.0.0",
             token="test-token",
-            # pragma: allowlist secret
-            api_key="test-api-key",
+            api_key="test-api-key",  # pragma: allowlist secret
         )
         assert mock_yaml.safe_dump.call_count == 1
         assert mock_click.secho.call_count == 2
@@ -311,8 +302,7 @@ class TestInfoCommand:
             "test_action",
             "1.0.0",
             token="test-token",
-            # pragma: allowlist secret
-            api_key="test-api-key",
+            api_key="test-api-key",  # pragma: allowlist secret
         )
         assert mock_yaml.safe_dump.call_count == 1
         assert mock_click.secho.call_count == 2

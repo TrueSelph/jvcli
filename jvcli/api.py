@@ -66,10 +66,9 @@ class RegistryAPI:
         endpoint = "info"
 
         try:
-            headers = {"Authorization": f"Bearer {token}"} if token else None
+            headers = {"Authorization": f"Bearer {token}"} if token else {}
 
             if api_key:
-                headers = headers or {}
                 headers["x-api-key"] = api_key
 
             data = {
@@ -105,10 +104,9 @@ class RegistryAPI:
         endpoint = "download"
 
         try:
-            headers = {"Authorization": f"Bearer {token}"} if token else None
+            headers = {"Authorization": f"Bearer {token}"} if token else {}
 
             if api_key:
-                headers = headers or {}
                 headers["x-api-key"] = api_key
 
             data = {
@@ -146,10 +144,9 @@ class RegistryAPI:
         endpoint = "info"
 
         try:
-            headers = {"Authorization": f"Bearer {token}"} if token else None
+            headers = {"Authorization": f"Bearer {token}"} if token else {}
 
             if api_key:
-                headers = headers or {}
                 headers["x-api-key"] = api_key
 
             data = {
