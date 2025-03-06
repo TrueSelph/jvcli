@@ -27,16 +27,11 @@ def download() -> None:
     required=False,
     help="Directory to download the action.",
 )
-@click.option(
-    "--api-key",
-    required=False,
-    help="API key for authentication.",
-)
 def download_action(
     name: str, version: str, path: str, api_key: Optional[str] = None
 ) -> None:
     """Download a JIVAS action package."""
-    _download_package(name, version, path, "action", api_key)
+    _download_package(name, version, path, "action")
 
 
 @download.command(name="agent")
@@ -47,21 +42,14 @@ def download_action(
     required=False,
     help="Directory to download the agent.",
 )
-@click.option(
-    "--api-key",
-    required=False,
-    help="API key for authentication.",
-)
 def download_agent(
     name: str, version: str, path: str, api_key: Optional[str] = None
 ) -> None:
     """Download a JIVAS agent package."""
-    _download_package(name, version, path, "agent", api_key)
+    _download_package(name, version, path, "agent")
 
 
-def _download_package(
-    name: str, version: str, path: str, pkg_type: str, api_key: Optional[str] = None
-) -> None:
+def _download_package(name: str, version: str, path: str, pkg_type: str) -> None:
     token = load_token().get("token")
 
     if not version:
@@ -70,9 +58,7 @@ def _download_package(
     click.echo(f"Downloading {name} version {version}...")
 
     try:
-        package_data = RegistryAPI.download_package(
-            name, version, token=token, api_key=api_key
-        )
+        package_data = RegistryAPI.download_package(name, version, token=token)
         if not package_data:
             click.secho("Failed to download the package.", fg="red")
             return

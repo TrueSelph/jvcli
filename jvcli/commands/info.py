@@ -1,7 +1,6 @@
 """Info command group for getting info about resources on the Jivas Package Repository."""
 
 import sys
-from typing import Optional
 
 import click
 from pyaml import yaml
@@ -19,12 +18,7 @@ def info() -> None:
 @info.command(name="action")
 @click.argument("name")
 @click.argument("version", required=False)
-@click.option(
-    "--api-key",
-    required=False,
-    help="API key for authentication.",
-)
-def get_action_info(name: str, version: str, api_key: Optional[str] = None) -> None:
+def get_action_info(name: str, version: str) -> None:
     """
     Get info for an action package by name and version.
     If version is not provided, the latest version will be fetched.
@@ -39,9 +33,7 @@ def get_action_info(name: str, version: str, api_key: Optional[str] = None) -> N
 
     # Use the API function to fetch the action
     try:
-        package_info = RegistryAPI.get_package_info(
-            name, version, token=token, api_key=api_key
-        )
+        package_info = RegistryAPI.get_package_info(name, version, token=token)
 
         if not package_info:
             click.secho("Failed to locate the action package.", fg="red")
@@ -64,12 +56,7 @@ def get_action_info(name: str, version: str, api_key: Optional[str] = None) -> N
 @info.command(name="agent")
 @click.argument("name")
 @click.argument("version", required=False)
-@click.option(
-    "--api-key",
-    required=False,
-    help="API key for authentication.",
-)
-def get_agent_info(name: str, version: str, api_key: Optional[str] = None) -> None:
+def get_agent_info(name: str, version: str) -> None:
     """
     Get info for an agent package by name and version.
     If version is not provided, the latest version will be fetched.
@@ -84,9 +71,7 @@ def get_agent_info(name: str, version: str, api_key: Optional[str] = None) -> No
 
     # Use the API function to fetch the agent
     try:
-        package_info = RegistryAPI.get_package_info(
-            name, version, token=token, api_key=api_key
-        )
+        package_info = RegistryAPI.get_package_info(name, version, token=token)
 
         if not package_info:
             click.secho("Failed to locate the agent package.", fg="red")
