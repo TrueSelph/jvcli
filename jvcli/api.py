@@ -57,13 +57,20 @@ class RegistryAPI:
 
     @staticmethod
     def get_package_info(
-        name: str, version: str = "", token: Optional[str] = None
+        name: str,
+        version: str = "",
+        token: Optional[str] = None,
+        api_key: Optional[str] = None,
     ) -> dict:
         """Get action info.yaml content as json"""
         endpoint = "info"
 
         try:
-            headers = {"Authorization": f"Bearer {token}"} if token else None
+            headers = {"Authorization": f"Bearer {token}"} if token else {}
+
+            if api_key:
+                headers["x-api-key"] = api_key
+
             data = {
                 "name": name,
                 "version": "" if version == "latest" else version,
@@ -91,12 +98,16 @@ class RegistryAPI:
         info: bool = False,
         suppress_error: bool = False,
         token: Optional[str] = None,
+        api_key: Optional[str] = None,
     ) -> dict:
         """Download a Jivas Package."""
         endpoint = "download"
 
         try:
-            headers = {"Authorization": f"Bearer {token}"} if token else None
+            headers = {"Authorization": f"Bearer {token}"} if token else {}
+
+            if api_key:
+                headers["x-api-key"] = api_key
 
             data = {
                 "name": name,
@@ -124,13 +135,20 @@ class RegistryAPI:
 
     @staticmethod
     def get_action_info(
-        name: str, version: str = "", token: Optional[str] = None
+        name: str,
+        version: str = "",
+        token: Optional[str] = None,
+        api_key: Optional[str] = None,
     ) -> dict:
         """Get action info.yaml content as json"""
         endpoint = "info"
 
         try:
-            headers = {"Authorization": f"Bearer {token}"} if token else None
+            headers = {"Authorization": f"Bearer {token}"} if token else {}
+
+            if api_key:
+                headers["x-api-key"] = api_key
+
             data = {
                 "name": name,
                 "version": "" if version == "latest" else version,
