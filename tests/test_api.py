@@ -197,7 +197,7 @@ class TestRegistryAPI:
         mock_requests.assert_called_once_with(
             RegistryAPI.url + "info",
             params={"name": "test-pkg", "version": "1.0.0"},
-            headers=None,
+            headers={},
         )
         mock_secho.assert_called_once_with(
             "Error retrieving action: Network error", fg="red"
@@ -246,7 +246,7 @@ class TestRegistryAPI:
         mock_requests.assert_called_once_with(
             RegistryAPI.url + "download",
             params={"name": "test-package", "info": "false", "version": "1.0.0"},
-            headers=None,
+            headers={},
         )
         mock_secho.assert_called_once_with(
             "Error downloading package: Network error", fg="red"
@@ -272,7 +272,7 @@ class TestRegistryAPI:
         mock_requests.assert_called_once_with(
             f"{RegistryAPI.url}info",
             params={"name": "test-action", "version": ""},
-            headers=None,
+            headers={},
         )
         assert result == {"name": "test-action", "description": "Test action"}
 
@@ -291,7 +291,7 @@ class TestRegistryAPI:
         mock_requests.assert_called_once_with(
             f"{RegistryAPI.url}info",
             params={"name": "test-action", "version": ""},
-            headers=None,
+            headers={},
         )
         mock_secho.assert_called_once_with(
             "Error retrieving action: Network error", fg="red"
@@ -316,7 +316,7 @@ class TestRegistryAPI:
         mock_requests.assert_called_once_with(
             f"{RegistryAPI.url}info",
             params={"name": "test-action", "version": ""},
-            headers=None,
+            headers={},
         )
         mock_secho.assert_called_once_with(
             "Error retrieving action: Not Found", fg="red"
@@ -742,7 +742,7 @@ class TestRegistryAPI:
         mock_get.assert_called_once_with(
             RegistryAPI.url + "download",
             params={"name": test_name, "info": "false", "version": test_version},
-            headers=None,
+            headers={},
         )
         assert result == {}
 
