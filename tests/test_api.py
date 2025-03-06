@@ -947,3 +947,57 @@ class TestRegistryAPI:
 
         # Assert
         assert result == {}
+
+    def test_package_download_with_api_key(self, mocker: MockerFixture) -> None:
+        """Test downloading package with API key."""
+        # Arrange
+        mock_response = mocker.Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"package": "content"}
+
+        mock_get = mocker.patch("requests.get", return_value=mock_response)
+
+        test_name = "test-action"
+        test_api_key = "test-api-key"  # pragma: allowlist secret
+
+        # Act
+        result = RegistryAPI.download_package(name=test_name, api_key=test_api_key)
+
+        # Assert
+        mock_get.assert_called_once_with(
+            f"{RegistryAPI.url}download",
+            params={"name": test_name, "info": "false", "version": ""},
+            headers={"x-api-key": test_api_key},
+        )
+        assert result == {"package": "content"}
+
+    def test_package_info_with_api_key(self, mocker: MockerFixture) -> None:
+        """Test getting package info with API key."""
+        # Arrange
+        mock_response = mocker.Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "name": "test-action",
+            "version": "1.0.0",
+            "description": "Test action",
+        }
+
+        mock_get = mocker.patch("requests.get", return_value=mock_response)
+
+        test_name = "test-action"
+        test_api_key = "test-api-key"  # pragma: allowlist secret
+
+        # Act
+        result = RegistryAPI.get_package_info(name=test_name, api_key=test_api_key)
+
+        # Assert
+        mock_get.assert_called_once_with(
+            f"{RegistryAPI.url}info",
+            params={"name": test_name, "version": ""},
+            headers={"x-api-key": test_api_key},
+        )
+        assert result == {
+            "name": "test-action",
+            "version": "1.0.0",
+            "description": "Test action",
+        }

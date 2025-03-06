@@ -48,10 +48,7 @@ class TestDownload:
 
         assert result.exit_code == 0
         mock_registry_api.download_package.assert_called_once_with(
-            "test_action",
-            "1.0.0",
-            token="test-token",
-            api_key=None,  # pragma: allowlist secret
+            "test_action", "1.0.0", token="test-token"
         )
         mock_requests.get.assert_called_once_with("http://test.com/package.tar.gz")
         mock_make_dirs.assert_called_once_with("./actions/test_action", exist_ok=True)
@@ -81,10 +78,7 @@ class TestDownload:
 
         assert result.exit_code == 0
         mock_registry_api.assert_called_once_with(
-            "test_action",
-            "latest",
-            token="fake-token",
-            api_key=None,  # pragma: allowlist secret
+            "test_action", "latest", token="fake-token"
         )
         mock_click_echo.assert_any_call("Downloading test_action version latest...")
 
@@ -251,128 +245,7 @@ class TestDownload:
 
         assert result.exit_code == 0
         mock_registry_api.download_package.assert_called_once_with(
-            "test_agent",
-            "1.0.0",
-            token="test-token",
-            api_key=None,  # pragma: allowlist secret
-        )
-        mock_requests.get.assert_called_once_with("http://test.com/package.tar.gz")
-        mock_make_dirs.assert_called_once_with("/custom/path/test_agent", exist_ok=True)
-        mock_click.secho.assert_called_with(
-            "Package 'test_agent' (version: 1.0.0) downloaded to /custom/path/test_agent!",
-            fg="green",
-        )
-
-    def test_download_action_with_api_key(self, mocker: MockerFixture) -> None:
-        """Test downloading an action using an API key."""
-        mock_load_token = mocker.patch("jvcli.commands.download.load_token")
-        mock_load_token.return_value = {"token": "test-token"}
-
-        mock_registry_api = mocker.patch("jvcli.commands.download.RegistryAPI")
-        mock_registry_api.download_package.return_value = {
-            "file": "http://test.com/package.tar.gz"
-        }
-
-        mock_requests = mocker.patch("jvcli.commands.download.requests")
-        mock_response = mocker.Mock()
-        mock_response.content = b"test content"
-        mock_requests.get.return_value = mock_response
-
-        mock_tarfile = mocker.patch("jvcli.commands.download.tarfile")
-        mock_tar = mocker.MagicMock()
-        mock_member = mocker.Mock()
-        mock_member.name = "info.yaml"
-        mock_tar.getmembers.return_value = [mock_member]
-        mock_info_file = mocker.Mock()
-        mock_tar.extractfile.return_value = mock_info_file
-        mock_tarfile.open.return_value.__enter__.return_value = mock_tar
-        mock_make_dirs = mocker.patch("jvcli.commands.download.os.makedirs")
-
-        mock_yaml = mocker.patch("jvcli.commands.download.yaml")
-        mock_yaml.safe_load.return_value = {
-            "package": {"meta": {"type": "test_action"}}
-        }
-
-        mock_click = mocker.patch("jvcli.commands.download.click")
-
-        runner = CliRunner()
-        result = runner.invoke(
-            download_action,
-            [
-                "test_action",
-                "1.0.0",
-                "--path",
-                "/custom/path",
-                "--api-key",
-                "test-api-key",
-            ],
-        )
-        print(result.output)
-
-        assert result.exit_code == 0
-        mock_registry_api.download_package.assert_called_once_with(
-            "test_action",
-            "1.0.0",
-            token="test-token",
-            api_key="test-api-key",  # pragma: allowlist secret
-        )
-        mock_requests.get.assert_called_once_with("http://test.com/package.tar.gz")
-        mock_make_dirs.assert_called_once_with(
-            "/custom/path/test_action", exist_ok=True
-        )
-        mock_click.secho.assert_called_with(
-            "Package 'test_action' (version: 1.0.0) downloaded to /custom/path/test_action!",
-            fg="green",
-        )
-
-    def test_download_agent_with_api_key(self, mocker: MockerFixture) -> None:
-        """Test downloading an agent using an API key."""
-        mock_load_token = mocker.patch("jvcli.commands.download.load_token")
-        mock_load_token.return_value = {"token": "test-token"}
-
-        mock_registry_api = mocker.patch("jvcli.commands.download.RegistryAPI")
-        mock_registry_api.download_package.return_value = {
-            "file": "http://test.com/package.tar.gz"
-        }
-
-        mock_requests = mocker.patch("jvcli.commands.download.requests")
-        mock_response = mocker.Mock()
-        mock_response.content = b"test content"
-        mock_requests.get.return_value = mock_response
-
-        mock_tarfile = mocker.patch("jvcli.commands.download.tarfile")
-        mock_tar = mocker.MagicMock()
-        mock_member = mocker.Mock()
-        mock_member.name = "info.yaml"
-        mock_tar.getmembers.return_value = [mock_member]
-        mock_info_file = mocker.Mock()
-        mock_tar.extractfile.return_value = mock_info_file
-        mock_tarfile.open.return_value.__enter__.return_value = mock_tar
-        mock_make_dirs = mocker.patch("jvcli.commands.download.os.makedirs")
-
-        mock_yaml = mocker.patch("jvcli.commands.download.yaml")
-        mock_yaml.safe_load.return_value = {"package": {"meta": {"type": "agent"}}}
-
-        mock_click = mocker.patch("jvcli.commands.download.click")
-
-        runner = CliRunner()
-        result = runner.invoke(
-            download_agent,
-            [
-                "test_agent",
-                "1.0.0",
-                "--path",
-                "/custom/path",
-                "--api-key",
-                "test-api-key",
-            ],
-        )
-        assert result.exit_code == 0
-        mock_registry_api.download_package.assert_called_once_with(
-            "test_agent",
-            "1.0.0",
-            token="test-token",
-            api_key="test-api-key",  # pragma: allowlist secret
+            "test_agent", "1.0.0", token="test-token"
         )
         mock_requests.get.assert_called_once_with("http://test.com/package.tar.gz")
         mock_make_dirs.assert_called_once_with("/custom/path/test_agent", exist_ok=True)

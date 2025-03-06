@@ -3,7 +3,6 @@
 import io
 import os
 import tarfile
-from typing import Optional
 
 import click
 import requests
@@ -27,9 +26,7 @@ def download() -> None:
     required=False,
     help="Directory to download the action.",
 )
-def download_action(
-    name: str, version: str, path: str, api_key: Optional[str] = None
-) -> None:
+def download_action(name: str, version: str, path: str) -> None:
     """Download a JIVAS action package."""
     _download_package(name, version, path, "action")
 
@@ -42,9 +39,7 @@ def download_action(
     required=False,
     help="Directory to download the agent.",
 )
-def download_agent(
-    name: str, version: str, path: str, api_key: Optional[str] = None
-) -> None:
+def download_agent(name: str, version: str, path: str) -> None:
     """Download a JIVAS agent package."""
     _download_package(name, version, path, "agent")
 
