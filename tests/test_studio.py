@@ -174,8 +174,8 @@ class TestStudio:
         mock_edge_collection.find.return_value = [
             {
                 "_id": ObjectId("507f191e810c19729de860ec"),
-                "source": "507f191e810c19729de860ea",
-                "target": "507f191e810c19729de860ed",
+                "source": "507f191e810c19729de860ea",  # pragma: allowlist secret
+                "target": "507f191e810c19729de860ed",  # pragma: allowlist secret
                 "name": "Edge1",
                 "architype": "TestEdge",
             }
@@ -207,17 +207,17 @@ class TestStudio:
         expected_response = {
             "nodes": [
                 {
-                    "id": "507f191e810c19729de860ed",
+                    "id": "507f191e810c19729de860ed",  # pragma: allowlist secret
                     "name": "Node2",
                     "data": "TestNode",
                 }
             ],
             "edges": [
                 {
-                    "id": "507f191e810c19729de860ec",
+                    "id": "507f191e810c19729de860ec",  # pragma: allowlist secret
                     "name": "Edge1",
-                    "source": "507f191e810c19729de860ea",
-                    "target": "507f191e810c19729de860ed",
+                    "source": "507f191e810c19729de860ea",  # pragma: allowlist secret
+                    "target": "507f191e810c19729de860ed",  # pragma: allowlist secret
                     "data": "TestEdge",
                 }
             ],
@@ -254,7 +254,7 @@ class TestStudio:
         # Test valid token
         response = client.get(
             "/graph",
-            params={"root": "507f191e810c19729de860eb"},
+            params={"root": "507f191e810c19729de860eb"},  # pragma: allowlist secret
             headers={"Authorization": "Bearer valid_token"},
         )
         assert response.status_code == 200
@@ -262,7 +262,7 @@ class TestStudio:
         # Test invalid token
         response = client.get(
             "/graph",
-            params={"root": "507f191e810c19729de860eb"},
+            params={"root": "507f191e810c19729de860eb"},  # pragma: allowlist secret
             headers={"Authorization": "Bearer invalid_token"},
         )
         assert response.status_code == 401
