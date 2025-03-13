@@ -508,7 +508,7 @@ def dummy_function():
 
         # Verify request was made correctly
         mock_post.assert_called_once_with(
-            url=f"{JIVAS_URL}/walker/action/walker",
+            url=f"{JIVAS_URL}/action/walker",
             headers={"Authorization": "Bearer test_token"},
             data={
                 "agent_id": agent_id,
@@ -552,7 +552,7 @@ def dummy_function():
 
         # Verify request was made correctly
         mock_post.assert_called_once_with(
-            url=f"{JIVAS_URL}/walker/action/walker",
+            url=f"{JIVAS_URL}/action/walker",
             headers={"Authorization": "Bearer test_token"},
             data={
                 "agent_id": agent_id,
