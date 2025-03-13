@@ -36,6 +36,12 @@ To publish an action:
 jvcli publish action --path ./my_action --visibility public
 ```
 
+To start a new project:
+
+```sh
+jvcli startproject my_project
+```
+
 For more detailed usage, refer to the help command:
 
 ```sh

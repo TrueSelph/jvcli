@@ -163,7 +163,18 @@ def _publish_common(
             click.secho(f"Error validating dependencies: {e}", fg="red")
             return
 
-        namespace, name = package_name.split("/", 1)
+        package_namespace, name = package_name.split("/", 1)
+
+        # verify that publish namespace matches package namespace
+        if (namespace and package_namespace) and (namespace != package_namespace):
+            click.secho(
+                f"Error validating namespace: You provided '{namespace}', but '{package_namespace}' was found in the package info file.",
+                fg="red",
+            )
+            return
+
+        # we need to ensure that the namespace is not None i.e namespace not used in cli
+        namespace = namespace or package_namespace
 
         if package_only and not output:
             output = "."
