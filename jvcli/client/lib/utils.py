@@ -211,8 +211,9 @@ def call_action_walker_exec(
             if args:
                 data["args"] = json.dumps(args)
 
+            file_list = []
+
             if files:
-                file_list = []
 
                 for file in files:
                     file_list.append(("attachments", (file[0], file[1], file[2])))
