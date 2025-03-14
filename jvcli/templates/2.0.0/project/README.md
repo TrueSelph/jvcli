@@ -15,7 +15,7 @@ sh sh/serve.sh
 To set up a demo agent, run the following command in another terminal:
 
 ```sh
-sh sh/import_agent.sh
+sh sh/importagent.sh
 ```
 
 This will initialize JIVAS, download, and install a demo agent.
@@ -25,7 +25,7 @@ This will initialize JIVAS, download, and install a demo agent.
 Once the setup is complete, run the following command in its own terminal to access the JIVAS manager for configuring and chatting with your agent:
 
 ```sh
-jvcli client launch
+sh sh/startclient.sh
 ```
 
 ## Reflecting Changes to Agent Actions
@@ -33,7 +33,7 @@ jvcli client launch
 If you make any changes to the agent actions, run the following command to reinitialize all agents running within this JIVAS app:
 
 ```sh
-sh sh/init.sh
+sh sh/initagents.sh
 ```
 
 ## Logging In

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Script to serve jivas app
 
-# Export env vars
-set -o allexport; source .env; set +o allexport
+source sh/exportenv.sh
+
 # serve jivas app
 jac jvserve main.jac

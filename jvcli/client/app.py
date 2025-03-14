@@ -26,8 +26,6 @@ def login_form() -> None:
     """Render the login form and handle login logic."""
     login_url = f"{JIVAS_URL}/user/login"
 
-    st.write(os.environ.get("JIVAS_ENVIRONMENT"))
-
     if os.environ.get("JIVAS_ENVIRONMENT") == "development":
         email = os.environ.get("JIVAS_USER", "admin@jivas.com")
         password = os.environ.get("JIVAS_PASSWORD", "password")
