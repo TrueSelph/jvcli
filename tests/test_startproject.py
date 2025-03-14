@@ -34,14 +34,25 @@ class TestStartProjectCommand:
         mock_makedirs.assert_any_call("test_project", exist_ok=True)
 
         # Verify subdirectories creation
-        expected_dirs = ["tests", "actions", "daf", "scripts"]
+        expected_dirs = ["tests", "actions", "daf", "sh"]
         for dir_name in expected_dirs:
             mock_makedirs.assert_any_call(
                 os.path.join("test_project", dir_name), exist_ok=True
             )
 
         # Verify template files creation
-        expected_files = ["main.jac", "globals.jac", ".env"]
+        expected_files = [
+            "main.jac",
+            "globals.jac",
+            ".env",
+            "README.md",
+            "actions/README.md",
+            "daf/README.md",
+            "sh/init.sh",
+            "sh/import_agent.sh",
+            "sh/serve.sh",
+            "tests/README.md",
+        ]
         mock_calls = mock_open.mock_calls
         written_files = [
             call.args[0] for call in mock_calls if "test_project" in str(call)
