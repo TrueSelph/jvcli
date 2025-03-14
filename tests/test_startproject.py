@@ -52,7 +52,6 @@ class TestStartProjectCommand:
             "sh/import_agent.sh",
             "sh/serve.sh",
             "tests/README.md",
-            "daf/README.md",
         ]
         mock_calls = mock_open.mock_calls
         written_files = [
