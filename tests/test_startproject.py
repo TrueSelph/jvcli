@@ -41,7 +41,19 @@ class TestStartProjectCommand:
             )
 
         # Verify template files creation
-        expected_files = ["main.jac", "globals.jac", ".env"]
+        expected_files = [
+            "main.jac",
+            "globals.jac",
+            ".env",
+            "README.md",
+            "actions/README.md",
+            "daf/README.md",
+            "sh/init.sh",
+            "sh/import_agent.sh",
+            "sh/serve.sh",
+            "tests/README.md",
+            "daf/README.md",
+        ]
         mock_calls = mock_open.mock_calls
         written_files = [
             call.args[0] for call in mock_calls if "test_project" in str(call)
