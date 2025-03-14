@@ -34,7 +34,7 @@ class TestStartProjectCommand:
         mock_makedirs.assert_any_call("test_project", exist_ok=True)
 
         # Verify subdirectories creation
-        expected_dirs = ["tests", "actions", "daf", "scripts"]
+        expected_dirs = ["tests", "actions", "daf", "sh"]
         for dir_name in expected_dirs:
             mock_makedirs.assert_any_call(
                 os.path.join("test_project", dir_name), exist_ok=True
