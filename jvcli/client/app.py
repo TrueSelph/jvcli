@@ -26,22 +26,38 @@ def login_form() -> None:
     """Render the login form and handle login logic."""
     login_url = f"{JIVAS_URL}/user/login"
 
-    with st.container(border=True):
-        st.header("Login")
+    st.write(os.environ.get("JIVAS_ENVIRONMENT"))
 
-        email = st.text_input("Email")
-        password = st.text_input("Password", type="password")
+    if os.environ.get("JIVAS_ENVIRONMENT") == "development":
+        email = os.environ.get("JIVAS_USER", "admin@jivas.com")
+        password = os.environ.get("JIVAS_PASSWORD", "password")
 
-        if st.button("Login"):
-            response = requests.post(
-                login_url, json={"email": email, "password": password}
-            )
+        response = requests.post(login_url, json={"email": email, "password": password})
 
-            if response.status_code == 200:
-                st.session_state.ROOT_ID = response.json()["user"]["root_id"]
-                st.session_state.TOKEN = response.json()["token"]
-                st.session_state.EXPIRATION = response.json()["user"]["expiration"]
-                st.rerun()
+        if response.status_code == 200:
+            st.session_state.ROOT_ID = response.json()["user"]["root_id"]
+            st.session_state.TOKEN = response.json()["token"]
+            st.session_state.EXPIRATION = response.json()["user"]["expiration"]
+            st.rerun()
+
+    else:
+
+        with st.container(border=True):
+            st.header("Login")
+
+            email = st.text_input("Email")
+            password = st.text_input("Password", type="password")
+
+            if st.button("Login"):
+                response = requests.post(
+                    login_url, json={"email": email, "password": password}
+                )
+
+                if response.status_code == 200:
+                    st.session_state.ROOT_ID = response.json()["user"]["root_id"]
+                    st.session_state.TOKEN = response.json()["token"]
+                    st.session_state.EXPIRATION = response.json()["user"]["expiration"]
+                    st.rerun()
 
 
 def main() -> None:
