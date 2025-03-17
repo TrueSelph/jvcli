@@ -33,7 +33,7 @@ def startproject(project_name: str, version: str) -> None:
         "tests": [],
         "actions": [],
         "daf": [],
-        "scripts": [],
+        "sh": [],
     }
 
     try:
@@ -44,18 +44,28 @@ def startproject(project_name: str, version: str) -> None:
         for folder in project_structure.keys():
             os.makedirs(os.path.join(project_name, folder), exist_ok=True)
 
-        # Copy template files from the selected version
-        for filename in ["main.jac", "globals.jac", "env.example"]:
-            template_file_path = os.path.join(template_path, filename)
-            if os.path.exists(template_file_path):
+        # Copy template files and folders from the selected version
+        for root, dirs, files in os.walk(template_path):
+            relative_path = os.path.relpath(root, template_path)
+            target_dir = os.path.join(project_name, relative_path)
+
+            # Create directories
+            for dir_name in dirs:
+                os.makedirs(os.path.join(target_dir, dir_name), exist_ok=True)
+
+            # Copy files
+            for file_name in files:
+                template_file_path = os.path.join(root, file_name)
+                target_file_path = os.path.join(target_dir, file_name)
+
                 with open(template_file_path, "r") as template_file:
                     contents = template_file.read()
 
                 # Write `.env` instead of `env.example`
-                target_filename = ".env" if filename == "env.example" else filename
-                with open(
-                    os.path.join(project_name, target_filename), "w"
-                ) as project_file:
+                if file_name == "env.example":
+                    target_file_path = os.path.join(target_dir, ".env")
+
+                with open(target_file_path, "w") as project_file:
                     project_file.write(contents)
 
         click.secho(
