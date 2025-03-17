@@ -101,6 +101,38 @@ class TestClientApp:
         assert app_test.session_state["EXPIRATION"] == "expiration"
         assert app_test.session_state["streamlit-router-endpoint"] == "dashboard"
 
+    def test_client_login_form_development_env(self, mocker: MockerFixture) -> None:
+        """Test login form submission in development environment."""
+
+        # Set environment variables for development
+        os.environ["JIVAS_ENVIRONMENT"] = "development"
+
+        mock_post = mocker.patch("jvcli.client.app.requests.post")
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = {
+            "user": {"root_id": "root_id", "expiration": "expiration"},
+            "token": "token",
+        }
+
+        app_test = AppTest.from_file(
+            Path(__file__)
+            .resolve()
+            .parent.parent.parent.joinpath("jvcli")
+            .joinpath("client")
+            .joinpath("app.py")
+            .resolve()
+            .__str__()
+        )
+        app_test.run()
+
+        assert app_test.session_state["ROOT_ID"] == "root_id"
+        assert app_test.session_state["TOKEN"] == "token"
+        assert app_test.session_state["EXPIRATION"] == "expiration"
+        assert app_test.session_state["streamlit-router-endpoint"] == "dashboard"
+
+        # Clean up
+        del os.environ["JIVAS_ENVIRONMENT"]
+
     def test_client_login_key_error_exception(self, mocker: MockerFixture) -> None:
         """Test login form submission with KeyError exception."""
 

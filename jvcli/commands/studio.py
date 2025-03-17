@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Annotated
 
 import click
+import jaclang  # noqa: F401
 from bson import ObjectId
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -204,7 +205,7 @@ class EndpointFactory:
 @click.group()
 def studio() -> None:
     """Group for managing Jivas Studio resources."""
-    pass
+    pass  # pragma: no cover
 
 
 @studio.command()

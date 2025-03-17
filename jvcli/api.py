@@ -62,7 +62,7 @@ class RegistryAPI:
         token: Optional[str] = None,
         api_key: Optional[str] = None,
     ) -> dict:
-        """Get action info.yaml content as json"""
+        """Get package info.yaml content as json"""
         endpoint = "info"
 
         try:
@@ -83,12 +83,12 @@ class RegistryAPI:
                 return response.json()
             else:
                 click.secho(
-                    f"Error retrieving action: {response.json()['error']}",
+                    f"Error retrieving package: {response.json()['error']}",
                     fg="red",
                 )
                 return {}
         except Exception as e:
-            click.secho(f"Error retrieving action: {e}", fg="red")
+            click.secho(f"Error retrieving package: {e}", fg="red")
             return {}
 
     @staticmethod
@@ -131,42 +131,6 @@ class RegistryAPI:
                 return {}
         except Exception as e:
             click.secho(f"Error downloading package: {e}", fg="red")
-            return {}
-
-    @staticmethod
-    def get_action_info(
-        name: str,
-        version: str = "",
-        token: Optional[str] = None,
-        api_key: Optional[str] = None,
-    ) -> dict:
-        """Get action info.yaml content as json"""
-        endpoint = "info"
-
-        try:
-            headers = {"Authorization": f"Bearer {token}"} if token else {}
-
-            if api_key:
-                headers["x-api-key"] = api_key
-
-            data = {
-                "name": name,
-                "version": "" if version == "latest" else version,
-            }
-            response = requests.get(
-                RegistryAPI.url + endpoint, params=data, headers=headers
-            )
-            # Check if the response is successful
-            if response.status_code == 200:
-                return response.json()
-            else:
-                click.secho(
-                    f"Error retrieving action: {response.json()['error']}",
-                    fg="red",
-                )
-                return {}
-        except Exception as e:
-            click.secho(f"Error retrieving action: {e}", fg="red")
             return {}
 
     @staticmethod

@@ -200,7 +200,7 @@ class TestRegistryAPI:
             headers={},
         )
         mock_secho.assert_called_once_with(
-            "Error retrieving action: Network error", fg="red"
+            "Error retrieving package: Network error", fg="red"
         )
         assert result == {}
 
@@ -250,76 +250,6 @@ class TestRegistryAPI:
         )
         mock_secho.assert_called_once_with(
             "Error downloading package: Network error", fg="red"
-        )
-        assert result == {}
-
-    def test_get_action_info_success_no_version(self, mocker: MockerFixture) -> None:
-        """Successfully retrieve action info with valid name and no version."""
-        # Arrange
-        mock_response = mocker.Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {
-            "name": "test-action",
-            "description": "Test action",
-        }
-
-        mock_requests = mocker.patch("requests.get", return_value=mock_response)
-
-        # Act
-        result = RegistryAPI.get_action_info(name="test-action")
-
-        # Assert
-        mock_requests.assert_called_once_with(
-            f"{RegistryAPI.url}info",
-            params={"name": "test-action", "version": ""},
-            headers={},
-        )
-        assert result == {"name": "test-action", "description": "Test action"}
-
-    def test_get_action_info_exception_handling(self, mocker: MockerFixture) -> None:
-        """Test that covers handling exceptions during action info retrieval."""
-        # Arrange
-        mock_requests = mocker.patch(
-            "requests.get", side_effect=Exception("Network error")
-        )
-        mock_secho = mocker.patch("click.secho")
-
-        # Act
-        result = RegistryAPI.get_action_info(name="test-action")
-
-        # Assert
-        mock_requests.assert_called_once_with(
-            f"{RegistryAPI.url}info",
-            params={"name": "test-action", "version": ""},
-            headers={},
-        )
-        mock_secho.assert_called_once_with(
-            "Error retrieving action: Network error", fg="red"
-        )
-        assert result == {}
-
-    def test_unsuccessful_response_handling(self, mocker: MockerFixture) -> None:
-        """Test handling of unsuccessful response during action info retrieval."""
-        # Arrange
-        mock_requests = mocker.patch(
-            "requests.get",
-            return_value=mocker.Mock(
-                status_code=404, json=lambda: {"error": "Not Found"}
-            ),
-        )
-        mock_secho = mocker.patch("click.secho")
-
-        # Act
-        result = RegistryAPI.get_action_info(name="test-action")
-
-        # Assert
-        mock_requests.assert_called_once_with(
-            f"{RegistryAPI.url}info",
-            params={"name": "test-action", "version": ""},
-            headers={},
-        )
-        mock_secho.assert_called_once_with(
-            "Error retrieving action: Not Found", fg="red"
         )
         assert result == {}
 
