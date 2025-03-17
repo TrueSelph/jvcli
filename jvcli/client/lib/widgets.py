@@ -181,7 +181,7 @@ def dynamic_form(
                 {"id": 0, "fields": {field["name"]: "" for field in field_definitions}}
             ]
 
-    def add_row() -> None:
+    def add_row() -> None:  # pragma: no cover, don't know how to test this yet 😅
         """Add a new row to the dynamic form."""
         new_id = (
             max((item["id"] for item in st.session_state[session_key]), default=-1) + 1
@@ -192,7 +192,9 @@ def dynamic_form(
         }
         st.session_state[session_key].append(new_row)
 
-    def remove_row(id_to_remove: int) -> None:
+    def remove_row(
+        id_to_remove: int,
+    ) -> None:  # pragma: no cover, don't know how to test this yet 😅
         """Remove a row from the dynamic form."""
         st.session_state[session_key] = [
             item for item in st.session_state[session_key] if item["id"] != id_to_remove

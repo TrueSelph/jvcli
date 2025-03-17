@@ -26,14 +26,14 @@ def signup(username: str, email: str, password: str) -> None:
 
 @click.command()
 @click.option(
-    "--login",
+    "--username",
     help="Your email address or username.",
     prompt="Login (username or email)",
 )
 @click.option("--password", prompt=True, hide_input=True, help="Your password.")
-def login(login: str, password: str) -> None:
+def login(username: str, password: str) -> None:
     """Log in to your Jivas Package Repository account."""
-    data = RegistryAPI.login(login, password)
+    data = RegistryAPI.login(username, password)
     if data and "token" in data and "namespaces" in data and "email" in data:
         save_token(data["token"], data["namespaces"], data["email"])
         click.secho("Login successful! Token saved.", fg="green", bold=True)
