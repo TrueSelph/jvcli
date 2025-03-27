@@ -15,10 +15,10 @@ sh sh/serve.sh
 To set up a demo agent, run the following command in another terminal:
 
 ```sh
-sh sh/importagent.sh
+sh sh/importagent.sh jivas/demo_ai
 ```
 
-This will initialize JIVAS, download, and install a demo agent.
+This will initialize JIVAS, download, and install a demo agent. If you wish to install any other agent, replace 'jivas/demo_ai' with the package name of your agent's DAF.
 
 ## Accessing the JIVAS Manager
 
