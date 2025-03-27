@@ -38,7 +38,7 @@ if lsof -i :$JIVAS_PORT >/dev/null; then
         --header 'Content-Type: application/json' \
         --header 'Accept: application/json' \
         --data '{"password": "'"$JIVAS_PASSWORD"'","email": "'"$JIVAS_USER"'"}' \
-        "http://localhost:$JIVAS_PORT/user/login" | grep -oP '(?<="token":")[^"]*')
+        "http://localhost:$JIVAS_PORT/user/login" | grep -o '"token":"[^"]*' | sed 's/"token":"//')
     fi
 
     # Print token
