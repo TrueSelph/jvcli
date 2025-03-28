@@ -10,16 +10,16 @@ fi
 DAF_NAME="$1"
 
 # Export env vars
-source sh/exportenv.sh
+source ./sh/exportenv.sh
 
 # Init the user token
-source sh/inituser.sh
+source ./sh/inituser.sh
 
 # Wait until JIVAS_TOKEN is set
 while [ -z "$JIVAS_TOKEN" ]; do
     echo "Waiting for JIVAS_TOKEN to be initialized..."
     sleep 1
-    source sh/inituser.sh
+    source ./sh/inituser.sh
 done
 
 # Check if JIVAS_TOKEN is set
