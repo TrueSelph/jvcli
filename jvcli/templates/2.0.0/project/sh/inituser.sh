@@ -7,7 +7,7 @@ if [ -z "$JIVAS_PORT" ] || [ -z "$JIVAS_PASSWORD" ] || [ -z "$JIVAS_USER" ]; the
     exit 1
 fi
 
-if lsof -i :$JIVAS_PORT >/dev/null; then
+if lsof -i :$JIVAS_PORT >/dev/null || netstat -an | grep -q ":$JIVAS_PORT .*LISTEN"; then
 
     # Try to login first
     JIVAS_TOKEN=$(curl --silent --show-error --no-progress-meter \

@@ -2,8 +2,8 @@
 
 # Export env vars
 set -o allexport
-if [ -f .env ]; then
-    source .env
+if [ -f ./.env ]; then
+    source ./.env
 else
     echo ".env file not found"
     exit 1

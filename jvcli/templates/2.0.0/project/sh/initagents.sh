@@ -2,10 +2,10 @@
 # Script to authenticate and initialize jivas agents
 
 # Export env vars
-source sh/exportenv.sh
+source ./sh/exportenv.sh
 
 # Init the user token
-source sh/inituser.sh
+source ./sh/inituser.sh
 
 # Check if JIVAS_TOKEN is set
 if [ -n "$JIVAS_TOKEN" ]; then
