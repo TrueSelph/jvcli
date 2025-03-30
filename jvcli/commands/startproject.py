@@ -23,6 +23,7 @@ def startproject(project_name: str, version: str) -> None:
     Usage:
         jvcli startproject <project_name> [--version <jivas_version>]
     """
+
     template_path = os.path.join(TEMPLATES_DIR, version, "project")
 
     if not os.path.exists(template_path):
@@ -61,9 +62,22 @@ def startproject(project_name: str, version: str) -> None:
                 with open(template_file_path, "r") as template_file:
                     contents = template_file.read()
 
-                # Write `.env` instead of `env.example`
+                if file_name == "gitignore.example":
+                    # Write `.gitignore`
+                    target_file_path_gitignore = os.path.join(target_dir, ".gitignore")
+                    with open(target_file_path_gitignore, "w") as gitignore_file:
+                        gitignore_file.write(contents)
+
                 if file_name == "env.example":
-                    target_file_path = os.path.join(target_dir, ".env")
+                    # Write `.env`
+                    target_file_path_env = os.path.join(target_dir, ".env")
+                    with open(target_file_path_env, "w") as env_file:
+                        env_file.write(contents)
+
+                    # Write `env.example`
+                    target_file_path_example = os.path.join(target_dir, "env.example")
+                    with open(target_file_path_example, "w") as example_file:
+                        example_file.write(contents)
 
                 with open(target_file_path, "w") as project_file:
                     project_file.write(contents)
