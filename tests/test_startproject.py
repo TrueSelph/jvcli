@@ -17,7 +17,7 @@ class TestStartProjectCommand:
 
         # Mock file system operations
         mock_makedirs = mocker.patch("os.makedirs")
-        mocker.patch("os.path.exists", return_value=True)
+        mocker.patch("os.path.exists", side_effect=lambda path: path != "test_project")
 
         # Mock open with support for both text and binary modes
         mock_file = mocker.mock_open(read_data=b"template content")
@@ -47,6 +47,7 @@ class TestStartProjectCommand:
             ".env",
             "env.example",
             ".gitignore",
+            "gitignore.example",
             "README.md",
             "actions/README.md",
             "daf/README.md",
@@ -60,10 +61,16 @@ class TestStartProjectCommand:
         ]
 
         mock_calls = mock_open.mock_calls
-        written_files = [
-            call.args[0] for call in mock_calls if "test_project" in str(call)
+        written_files = {
+            os.path.normpath(call.args[0])
+            for call in mock_calls
+            if "test_project" in str(call)
+        }
+        normalized_expected_files = [
+            os.path.normpath(os.path.join("test_project", file))
+            for file in expected_files
         ]
-        assert len(written_files) == len(expected_files)
+        assert set(written_files) == set(normalized_expected_files)
 
         # Verify success message
         mock_click.assert_called_with(
