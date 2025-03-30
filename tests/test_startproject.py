@@ -45,6 +45,8 @@ class TestStartProjectCommand:
             "main.jac",
             "globals.jac",
             ".env",
+            "env.example",
+            ".gitignore",
             "README.md",
             "actions/README.md",
             "daf/README.md",
