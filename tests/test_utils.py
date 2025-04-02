@@ -67,12 +67,6 @@ class TestUtils:
 
         validate_package_name("test-ns/package-name")
 
-    def test_is_version_compatible_with_exact_match(self) -> None:
-        """is_version_compatible correctly handles exact version matches and version ranges."""
-        assert is_version_compatible("1.0.0", "1.0.0") is True
-        assert is_version_compatible("2.1.0", ">=2.0.0,<3.0.0") is True
-        assert is_version_compatible("1.0.0", "^1.0.0") is True
-
     def test_validate_snake_case_rejects_invalid_strings(self) -> None:
         """validate_snake_case rejects strings with uppercase letters or special characters."""
         ctx = click.Context(click.Command("test"))
@@ -130,6 +124,57 @@ class TestUtils:
         assert is_version_compatible("1.0.0", "invalid") is False
         assert is_version_compatible("1.0", ">=invalid") is False
 
+    def test_is_version_compatible_with_exact_match(self) -> None:
+        """is_version_compatible correctly handles exact version matches and version ranges."""
+        assert is_version_compatible("1.0.0", "1.0.0") is True
+        assert is_version_compatible("2.1.0", ">=2.0.0,<3.0.0") is True
+        assert is_version_compatible("1.0.0", "^1.0.0") is True
+
+    def test_is_version_compatible_with_incompatible_versions(self) -> None:
+        """is_version_compatible returns False for incompatible versions."""
+        assert is_version_compatible("1.0.0", "2.0.0") is False
+        assert is_version_compatible("1.0.0", ">=2.0.0,<3.0.0") is False
+        assert is_version_compatible("1.0.0", "^2.0.0") is False
+
+    def test_is_version_compatible_with_invalid_version(self) -> None:
+        """is_version_compatible handles invalid version inputs gracefully."""
+        assert is_version_compatible("invalid_version", "1.0.0") is False
+        assert is_version_compatible("1.0.0", "invalid_specifier") is False
+        assert is_version_compatible("invalid_version", "invalid_specifier") is False
+
+    def test_is_version_compatible_with_shorthand_tilde(self) -> None:
+        """is_version_compatible correctly handles shorthand '~' specifier."""
+        assert is_version_compatible("1.2.3", "~1.2.0") is True
+        assert is_version_compatible("1.3.0", "~1.2.0") is False
+        assert is_version_compatible("1.2.0", "~1.2.0") is True
+
+    def test_is_version_compatible_with_shorthand_caret(self) -> None:
+        """is_version_compatible correctly handles shorthand '^' specifier."""
+        assert is_version_compatible("1.2.3", "^1.2.0") is True
+        assert is_version_compatible("2.0.0", "^1.2.0") is False
+        assert is_version_compatible("0.2.3", "^0.2.0") is True
+        assert is_version_compatible("0.3.0", "^0.2.0") is False
+
+    def test_is_version_compatible_with_edge_cases(self) -> None:
+        """is_version_compatible handles edge cases like empty strings and None."""
+        assert is_version_compatible("", "1.0.0") is False
+        assert is_version_compatible("1.0.0", "") is False
+        assert is_version_compatible("", "") is False
+        assert is_version_compatible(None, "1.0.0") is False  # type: ignore
+        assert is_version_compatible("1.0.0", None) is False  # type: ignore
+        assert is_version_compatible(None, None) is False  # type: ignore
+
+    def test_is_version_compatible_with_pre_release_versions(self) -> None:
+        """is_version_compatible correctly handles pre-release versions."""
+        assert is_version_compatible("1.0.0-alpha", ">=1.0.0-alpha,<2.0.0") is True
+        assert is_version_compatible("1.0.0-alpha", ">=1.0.0,<2.0.0") is False
+        assert is_version_compatible("1.0.0-beta", "^1.0.0-alpha") is True
+
+    def test_is_version_compatible_with_exact_pre_release(self) -> None:
+        """is_version_compatible correctly matches exact pre-release versions."""
+        assert is_version_compatible("1.0.0-alpha", "1.0.0-alpha") is True
+        assert is_version_compatible("1.0.0-alpha", "1.0.0-beta") is False
+
     def test_compress_package_to_tgz(self) -> None:
         """Test that compress_package_to_tgz correctly creates a .tgz archive, excluding unwanted folders."""
 
@@ -166,20 +211,6 @@ class TestUtils:
             # Ensure excluded directories are NOT present
             assert "__jac_gen__" not in archive_files
             assert "__pycache__" not in archive_files
-
-    def test_is_version_compatible_with_tilde_and_caret_specifiers(self) -> None:
-        """is_version_compatible processes tilde (~) and caret (^) version specifiers."""
-        # Test cases for tilde (~) specifier
-        assert is_version_compatible("2.1.0", "~2.1.0") is True
-        assert is_version_compatible("2.1.5", "~2.1.0") is True
-        assert is_version_compatible("2.2.0", "~2.1.0") is False
-
-        # Test cases for caret (^) specifier
-        assert is_version_compatible("2.1.0", "^2.0.0") is True
-        assert is_version_compatible("3.0.0", "^2.0.0") is False
-        assert is_version_compatible("0.2.5", "^0.2.0") is True
-        assert is_version_compatible("0.3.0", "^0.2.0") is False
-        assert is_version_compatible("0.0.6", "^0.0.4") is False
 
     def test_compress_package_to_tgz_preserves_structure_and_permissions(
         self, mocker: MockerFixture

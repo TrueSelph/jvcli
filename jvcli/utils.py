@@ -6,8 +6,8 @@ import tarfile
 
 import click
 import yaml
-from packaging.specifiers import SpecifierSet
-from packaging.version import parse as parse_version
+from packaging.specifiers import InvalidSpecifier, SpecifierSet
+from packaging.version import InvalidVersion, Version
 
 from jvcli import __supported__jivas__versions__
 from jvcli.api import RegistryAPI
@@ -92,61 +92,56 @@ def validate_package_name(name: str) -> None:
 
 def is_version_compatible(version: str, specifiers: str) -> bool:
     """
-    Compares the provided version to a given set of specifications/modifiers or exact version match.
+    Determines if the provided version satisfies the given specifiers or exact version match.
 
     Args:
-    - version (str): The version to be compared. E.g., "2.1.0".
-    - specifiers (str): The version specifier set or exact version. E.g., "2.1.0" or ">=0.2,<0.3" or "0.0.1" or "^2.0.0"
+    - version (str): The version to be checked. E.g., "2.1.0".
+    - specifiers (str): The version specifier set or exact version. E.g., "2.1.0", ">=0.2,<0.3", or "^2.0.0".
 
     Returns:
     - bool: True if the version satisfies the specifier set or exact match, False otherwise.
     """
     try:
-        # Parse the version to check
-        version = parse_version(version)
+        # Handle edge cases for empty strings or None inputs
+        if not version or not specifiers:
+            return False
 
-        # Check if specifiers is a simple exact version match
-        try:
-            exact_version = parse_version(specifiers)
-            return version == exact_version
-        except Exception:
-            # If parsing fails, treat it as a specifier set
-            pass
+        # Handle exact version equality when no special characters present
+        if all(c not in specifiers for c in "<>!=~^*,"):
+            return Version(version) == Version(specifiers)
 
-        # Handle "~" shorthand by translating it to a compatible range
+        # Handle tilde (~) syntax, as in npm semver, if used
         if specifiers.startswith("~"):
-            base_version = specifiers[1:]
-            parsed_base = parse_version(base_version)
-            major = parsed_base.major
-            minor = parsed_base.minor
-            # Assuming the next release constraint is on minor bump
-            upper_bound = f"<{major}.{minor + 1}"
-            specifiers = f">={base_version},{upper_bound}"
+            base_version = Version(specifiers[1:])
+            if base_version.release is None or len(base_version.release) < 2:
+                raise InvalidSpecifier(f"Invalid tilde specifier: '{specifiers}'")
+            next_minor = base_version.minor + 1
+            specifiers = f">={base_version},<{base_version.major}.{next_minor}.0"
 
-        # Handle "^" shorthand to translate to a compatible range
-        if specifiers.startswith("^"):
-            base_version = specifiers[1:]
-            parsed_base = parse_version(base_version)
-            major = parsed_base.major
-            minor = parsed_base.minor
-            patch = parsed_base.micro
+        # Explicitly handle caret (^) syntax (npm semver style)
+        elif specifiers.startswith("^"):
+            base_version = Version(specifiers[1:])
+            major, minor, patch = (
+                base_version.major,
+                base_version.minor,
+                base_version.micro,
+            )
+
             if major > 0:
-                upper_bound = f"<{major + 1}.0.0"
-            elif minor > 0:
-                upper_bound = f"<0.{minor + 1}.0"
-            else:
-                upper_bound = f"<0.0.{patch + 1}"
-            specifiers = f">={base_version},{upper_bound}"
+                specifiers = f">={base_version},<{major + 1}.0.0"
+            elif major == 0 and minor > 0:
+                specifiers = f">={base_version},<0.{minor + 1}.0"
+            else:  # major == 0 and minor == 0
+                specifiers = f">={base_version},<0.0.{patch + 1}"
 
-        # Create a SpecifierSet with the given specifiers
-        spec_set = SpecifierSet(specifiers)
+        # Finally check using the SpecifierSet
+        specifier_set = SpecifierSet(specifiers)
+        parsed_version = Version(version)
 
-        # Check if the version matches the specifier set
-        return version in spec_set
+        return parsed_version in specifier_set
 
-    except Exception as e:
-        # Handle exceptions if the inputs are malformed or invalid
-        click.secho(f"Error comparing versions: {e}", fg="red")
+    except (InvalidVersion, InvalidSpecifier, TypeError) as e:
+        print(f"Version parsing error: {e}")
         return False
 
 
