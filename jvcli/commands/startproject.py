@@ -16,12 +16,18 @@ from jvcli.utils import TEMPLATES_DIR
     show_default=True,
     help="Jivas project version to use for scaffolding.",
 )
-def startproject(project_name: str, version: str) -> None:
+@click.option(
+    "--no-env",
+    is_flag=True,
+    default=False,
+    help="Skip generating the .env file.",
+)
+def startproject(project_name: str, version: str, no_env: bool) -> None:
     """
     Initialize a new Jivas project with the necessary structure.
 
     Usage:
-        jvcli startproject <project_name> [--version <jivas_version>]
+        jvcli startproject <project_name> [--version <jivas_version>] [--no-env]
     """
 
     template_path = os.path.join(TEMPLATES_DIR, version, "project")
@@ -69,12 +75,13 @@ def startproject(project_name: str, version: str) -> None:
                         gitignore_file.write(contents)
 
                 if file_name == "env.example":
-                    # Write `.env`
-                    target_file_path_env = os.path.join(target_dir, ".env")
-                    with open(target_file_path_env, "w") as env_file:
-                        env_file.write(contents)
+                    # Write `.env` only if no-env flag is not set
+                    if not no_env:
+                        target_file_path_env = os.path.join(target_dir, ".env")
+                        with open(target_file_path_env, "w") as env_file:
+                            env_file.write(contents)
 
-                    # Write `env.example`
+                    # Always write `env.example`
                     target_file_path_example = os.path.join(target_dir, "env.example")
                     with open(target_file_path_example, "w") as example_file:
                         example_file.write(contents)
@@ -83,7 +90,7 @@ def startproject(project_name: str, version: str) -> None:
                     project_file.write(contents)
 
         click.secho(
-            f"Successfully created Jivas project: {project_name} (Version: {version})",
+            f"Successfully created Jivas project: {project_name} (Version: {version}){' (without .env file)' if no_env else ''}",
             fg="green",
         )
 
