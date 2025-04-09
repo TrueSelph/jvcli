@@ -25,7 +25,7 @@ done
 # Check if JIVAS_TOKEN is set
 if [ -n "$JIVAS_TOKEN" ]; then
 
-    echo -e "\n\nImporting demo agent...\n"
+    echo -e "\n\nImporting agent...\n"
     # Import the agent
     AGENT_ID=$(curl --silent --show-error --no-progress-meter \
     --request POST \
