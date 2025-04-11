@@ -87,7 +87,7 @@ def _download_package(name: str, version: str, path: str, pkg_type: str) -> None
 
                 # checking for both daf and agent to maintain backward compatibility
                 if pkg_type == "agent" and package_type in ["agent", "daf"]:
-                    base_dir = "dafs"
+                    base_dir = "daf"
                 elif pkg_type == "action" and package_type.endswith("action"):
                     base_dir = "actions"
                 else:

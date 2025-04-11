@@ -32,6 +32,7 @@ test_source/
 *.session.db
 mydatabase/
 actions/jivas/
+daf/jivas/
 .DS_Store
 .vscode
 build
@@ -46,7 +47,7 @@ node_modules
 out.dot
 out.txt
 .jvdata
-.env
+*.env
 
 # Mypy files #
 .mypy_cache*
