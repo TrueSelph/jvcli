@@ -32,6 +32,7 @@ test_source/
 *.session.db
 mydatabase/
 actions/jivas/
+daf/jivas/
 .DS_Store
 .vscode
 build
