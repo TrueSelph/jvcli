@@ -331,7 +331,7 @@ def create_namespace(name: str) -> None:
 )
 @click.option(
     "--path",
-    default="./dafs",
+    default="./daf",
     show_default=True,
     help="Directory to create the agent.",
 )
