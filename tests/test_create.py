@@ -311,7 +311,7 @@ class TestCreateCommand:
         result = runner.invoke(create_agent, ["--name", "test_agent"])
 
         assert result.exit_code == 0
-        mock_makedirs.assert_called_with("./dafs/testuser/test_agent", exist_ok=True)
+        mock_makedirs.assert_called_with("./daf/testuser/test_agent", exist_ok=True)
 
         version = __supported__jivas__versions__[0]
 
@@ -327,13 +327,13 @@ class TestCreateCommand:
         mock_open.assert_any_call(
             os.path.join(TEMPLATES_DIR, version, "agent_memory.yaml"), "r"
         )
-        mock_open.assert_any_call("./dafs/testuser/test_agent/info.yaml", "w")
-        mock_open.assert_any_call("./dafs/testuser/test_agent/descriptor.yaml", "w")
-        mock_open.assert_any_call("./dafs/testuser/test_agent/knowledge.yaml", "w")
-        mock_open.assert_any_call("./dafs/testuser/test_agent/memory.yaml", "w")
+        mock_open.assert_any_call("./daf/testuser/test_agent/info.yaml", "w")
+        mock_open.assert_any_call("./daf/testuser/test_agent/descriptor.yaml", "w")
+        mock_open.assert_any_call("./daf/testuser/test_agent/knowledge.yaml", "w")
+        mock_open.assert_any_call("./daf/testuser/test_agent/memory.yaml", "w")
 
         mock_click.assert_called_with(
-            "Agent 'test_agent' created successfully in ./dafs/testuser/test_agent!",
+            "Agent 'test_agent' created successfully in ./daf/testuser/test_agent!",
             fg="green",
             bold=True,
         )

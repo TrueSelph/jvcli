@@ -21,7 +21,7 @@ To create a new DAF package using `jvcli`, follow these steps:
 2. **Options**: You can customize the creation process with various options:
     - `--version`: Specify the version of the agent. Default is `0.0.1`.
     - `--jivas_version`: Specify the version of Jivas. Default is `2.0.0`.
-    - `--path`: Directory to create the agent folder in. Default is `./dafs`.
+    - `--path`: Directory to create the agent folder in. Default is `./daf`.
     - `--namespace`: Namespace for the agent. Defaults to the username in the token.
 
 3. **Example**:

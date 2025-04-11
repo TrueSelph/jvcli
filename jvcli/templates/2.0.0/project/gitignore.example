@@ -46,7 +46,7 @@ node_modules
 out.dot
 out.txt
 .jvdata
-.env
+*.env
 
 # Mypy files #
 .mypy_cache*
