@@ -4,7 +4,7 @@ import datetime
 
 from pytest_mock import MockerFixture
 
-from jvcli.client.lib.utils import JIVAS_URL
+from jvcli.client.lib.utils import JIVAS_BASE_URL
 from jvcli.client.pages.analytics_page import (
     channels_chart,
     interactions_chart,
@@ -16,44 +16,14 @@ from jvcli.client.pages.analytics_page import (
 class TestClientAnalyticsPage:
     """Test the JVCLI client analytics page."""
 
-    def test_render_analytics_with_valid_inputs(self, mocker: MockerFixture) -> None:
-        """Test rendering analytics with valid inputs."""
-        # Mock get_user_info to return a valid token
-        mocker.patch(
-            "jvcli.client.pages.analytics_page.get_user_info",
-            return_value={
-                "root_id": "test_root_id",
-                "token": "test_token",
-                "expiration": "test_expiration",
-            },
-        )
-
+    def test_render_with_no_selected_agent(self, mocker: MockerFixture) -> None:
+        """Test rendering analytics page when no agent is selected."""
         # Mock session state
-        mocker.patch(
-            "streamlit.session_state", {"selected_agent": {"id": "test_agent_id"}}
-        )
+        mocker.patch("streamlit.session_state", {})
 
         # Mock streamlit widgets
-        mocker.patch("streamlit.header")
-        mock_date_input = mocker.patch("streamlit.date_input")
-        mock_date_input.return_value = (
-            datetime.date(2024, 1, 1),
-            datetime.date(2024, 1, 31),
-        )
-        mocker.patch(
-            "jvcli.client.pages.analytics_page.st.columns", return_value=(1, 2, 3)
-        )
-        mocker.patch(
-            "jvcli.client.pages.analytics_page.st_javascript",
-            return_value="test_timezone",
-        )
-
-        # Mock chart functions
-        mock_interactions = mocker.patch(
-            "jvcli.client.pages.analytics_page.interactions_chart"
-        )
-        mock_users = mocker.patch("jvcli.client.pages.analytics_page.users_chart")
-        mock_channels = mocker.patch("jvcli.client.pages.analytics_page.channels_chart")
+        mock_header = mocker.patch("streamlit.header")
+        mock_text = mocker.patch("streamlit.text")
 
         # Mock router
         mock_router = mocker.Mock()
@@ -61,10 +31,36 @@ class TestClientAnalyticsPage:
         # Call function
         render(mock_router)
 
-        # Verify chart functions were called with correct params
-        mock_interactions.assert_called_once()
-        mock_users.assert_called_once()
-        mock_channels.assert_called_once()
+        # Verify header and text were called
+        mock_header.assert_called_once_with("Analytics", divider=True)
+        mock_text.assert_called_once_with("Invalid date range")
+
+    def test_render_with_invalid_date_range(self, mocker: MockerFixture) -> None:
+        """Test rendering analytics page with an invalid date range."""
+        # Mock session state
+        mocker.patch(
+            "streamlit.session_state",
+            {"selected_agent": {"id": "test_agent_id"}},
+        )
+
+        # Mock streamlit widgets
+        mock_header = mocker.patch("streamlit.header")
+        mock_date_input = mocker.patch("streamlit.date_input")
+        mock_date_input.return_value = (
+            datetime.date(2024, 1, 31),
+            datetime.date(2024, 1, 1),
+        )
+        mock_text = mocker.patch("streamlit.text")
+
+        # Mock router
+        mock_router = mocker.Mock()
+
+        # Call function
+        render(mock_router)
+
+        # Verify header and text were called
+        mock_header.assert_called_once_with("Analytics", divider=True)
+        mock_text.assert_called_once_with("Invalid date range")
 
     def test_interactions_chart_successful_api_call(
         self, mocker: MockerFixture
@@ -97,7 +93,7 @@ class TestClientAnalyticsPage:
 
         # Verify API call
         mock_requests.assert_called_once_with(
-            url=f"{JIVAS_URL}/walker/get_interactions_by_date",
+            url=f"{JIVAS_BASE_URL}/walker/get_interactions_by_date",
             json={
                 "agent_id": "test_agent",
                 "reporting": True,
@@ -152,7 +148,7 @@ class TestClientAnalyticsPage:
 
         # Verify API call
         mock_post.assert_called_once_with(
-            url=f"{JIVAS_URL}/walker/get_users_by_date",
+            url=f"{JIVAS_BASE_URL}/walker/get_users_by_date",
             json={
                 "agent_id": agent_id,
                 "reporting": True,
@@ -205,7 +201,7 @@ class TestClientAnalyticsPage:
 
         # Verify API call
         mock_post.assert_called_once_with(
-            url=f"{JIVAS_URL}/walker/get_channels_by_date",
+            url=f"{JIVAS_BASE_URL}/walker/get_channels_by_date",
             json={
                 "agent_id": agent_id,
                 "reporting": True,

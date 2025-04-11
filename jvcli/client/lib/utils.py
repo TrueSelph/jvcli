@@ -12,7 +12,7 @@ import streamlit as st
 import yaml
 from PIL import Image
 
-JIVAS_URL = os.environ.get("JIVAS_URL", "http://localhost:8000")
+JIVAS_BASE_URL = os.environ.get("JIVAS_BASE_URL", "http://localhost:8000")
 
 
 def load_function(file_path: str, function_name: str, **kwargs: Any) -> Callable:
@@ -50,12 +50,49 @@ def load_function(file_path: str, function_name: str, **kwargs: Any) -> Callable
     return wrapped_func
 
 
+def call_healthcheck(agent_id: str) -> dict:
+    """Call the API to check the health of a specific agent."""
+
+    ctx = get_user_info()
+
+    endpoint = f"{JIVAS_BASE_URL}/walker/healthcheck"
+
+    if ctx["token"]:
+        try:
+            headers = {"Authorization": "Bearer " + ctx["token"]}
+            json = {"agent_id": agent_id}
+
+            # make call
+            response = requests.post(endpoint, json=json, headers=headers)
+
+            if response.status_code == 401:
+                st.session_state.EXPIRATION = ""
+                return {}
+
+            if (
+                response.status_code == 200
+                or response.status_code == 501
+                or response.status_code == 503
+            ):
+                result = (response.json()).get("reports", [])
+                if len(result) > 0:
+                    return result[0]
+                else:
+                    return {}
+
+        except Exception as e:
+            st.session_state.EXPIRATION = ""
+            print("Exception occurred: ", e)
+
+    return {}
+
+
 def call_list_agents() -> list:
     """Call the API to list agents."""
 
     ctx = get_user_info()
 
-    endpoint = f"{JIVAS_URL}/walker/list_agents"
+    endpoint = f"{JIVAS_BASE_URL}/walker/list_agents"
 
     if ctx["token"]:
         try:
@@ -88,7 +125,7 @@ def call_list_actions(agent_id: str) -> list:
 
     ctx = get_user_info()
 
-    endpoint = f"{JIVAS_URL}/walker/list_actions"
+    endpoint = f"{JIVAS_BASE_URL}/walker/list_actions"
 
     if ctx["token"]:
         try:
@@ -121,7 +158,7 @@ def call_get_action(agent_id: str, action_id: str) -> list:
 
     ctx = get_user_info()
 
-    endpoint = f"{JIVAS_URL}/walker/get_action"
+    endpoint = f"{JIVAS_BASE_URL}/walker/get_action"
 
     if ctx["token"]:
         try:
@@ -154,7 +191,7 @@ def call_update_action(agent_id: str, action_id: str, action_data: dict) -> dict
 
     ctx = get_user_info()
 
-    endpoint = f"{JIVAS_URL}/walker/update_action"
+    endpoint = f"{JIVAS_BASE_URL}/walker/update_action"
 
     if ctx["token"]:
         try:
@@ -198,7 +235,7 @@ def call_action_walker_exec(
 
     ctx = get_user_info()
 
-    endpoint = f"{JIVAS_URL}/action/walker"
+    endpoint = f"{JIVAS_BASE_URL}/action/walker"
 
     if ctx.get("token"):
         try:
@@ -246,7 +283,7 @@ def call_import_agent(
 
     ctx = get_user_info()
 
-    endpoint = f"{JIVAS_URL}/walker/import_agent"
+    endpoint = f"{JIVAS_BASE_URL}/walker/import_agent"
 
     if ctx.get("token"):
         try:
@@ -278,9 +315,9 @@ def call_import_agent(
 def get_user_info() -> dict:
     """Get user information from the session state."""
     return {
-        "root_id": st.session_state.ROOT_ID,
-        "token": st.session_state.TOKEN,
-        "expiration": st.session_state.EXPIRATION,
+        "root_id": st.session_state.get("ROOT_ID", ""),
+        "token": st.session_state.get("TOKEN", ""),
+        "expiration": st.session_state.get("EXPIRATION", ""),
     }
 
 
