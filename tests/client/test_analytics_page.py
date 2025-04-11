@@ -16,6 +16,56 @@ from jvcli.client.pages.analytics_page import (
 class TestClientAnalyticsPage:
     """Test the JVCLI client analytics page."""
 
+    def test_render_analytics_with_valid_inputs(self, mocker: MockerFixture) -> None:
+        """Test rendering analytics with valid inputs."""
+        # Mock get_user_info to return a valid token
+        mocker.patch(
+            "jvcli.client.pages.analytics_page.get_user_info",
+            return_value={
+                "root_id": "test_root_id",
+                "token": "test_token",
+                "expiration": "test_expiration",
+            },
+        )
+
+        # Mock session state
+        mocker.patch(
+            "streamlit.session_state", {"selected_agent": {"id": "test_agent_id"}}
+        )
+
+        # Mock streamlit widgets
+        mocker.patch("streamlit.header")
+        mock_date_input = mocker.patch("streamlit.date_input")
+        mock_date_input.return_value = (
+            datetime.date(2024, 1, 1),
+            datetime.date(2024, 1, 31),
+        )
+        mocker.patch(
+            "jvcli.client.pages.analytics_page.st.columns", return_value=(1, 2, 3)
+        )
+        mocker.patch(
+            "jvcli.client.pages.analytics_page.st_javascript",
+            return_value="test_timezone",
+        )
+
+        # Mock chart functions
+        mock_interactions = mocker.patch(
+            "jvcli.client.pages.analytics_page.interactions_chart"
+        )
+        mock_users = mocker.patch("jvcli.client.pages.analytics_page.users_chart")
+        mock_channels = mocker.patch("jvcli.client.pages.analytics_page.channels_chart")
+
+        # Mock router
+        mock_router = mocker.Mock()
+
+        # Call function
+        render(mock_router)
+
+        # Verify chart functions were called with correct params
+        mock_interactions.assert_called_once()
+        mock_users.assert_called_once()
+        mock_channels.assert_called_once()
+
     def test_render_with_no_selected_agent(self, mocker: MockerFixture) -> None:
         """Test rendering analytics page when no agent is selected."""
         # Mock session state

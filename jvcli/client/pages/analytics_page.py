@@ -26,14 +26,14 @@ def render(router: StreamlitRouter) -> None:
     def fetch_healthcheck(agent_id: str) -> dict:
         return call_healthcheck(agent_id)
 
-    recheck = st.button("Recheck Health")
     health_data = None
 
     if selected_agent:
-        if recheck:
-            # Clear the cache and fetch fresh data
+        # Clear the cache and fetch fresh data if the button is clicked
+        if st.session_state.get("recheck_health_clicked", False):
             fetch_healthcheck.clear()
             health_data = call_healthcheck(selected_agent["id"])
+            st.session_state["recheck_health_clicked"] = False
         else:
             # Use cached data
             health_data = fetch_healthcheck(selected_agent["id"])
@@ -76,6 +76,9 @@ def render(router: StreamlitRouter) -> None:
                         st.warning("Warnings")
                         for warning in warnings:
                             st.text(f"- {warning}")
+                    if st.button("Recheck Health", key="recheck_inside_expander"):
+                        st.session_state["recheck_health_clicked"] = True
+
             else:
                 st.error("Failed to fetch healthcheck data.")
         except Exception as e:

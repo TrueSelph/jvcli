@@ -4,6 +4,9 @@
 # Export env vars
 source ./sh/exportenv.sh
 
+# perform jac clean of actions
+source ./sh/jacclean.sh
+
 # Init the user token
 source ./sh/inituser.sh
 
