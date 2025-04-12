@@ -72,7 +72,7 @@ class TestClientActionDashboardPage:
 
         # assert actions dashboard
         assert app_test.query_params["agent"] == ["test_agent_id"]
-        # assert app_test.query_params["request"] == ["GET:/actions"]
+        assert app_test.query_params["request"] == ["GET:/actions"]
 
     def test_token_removal_from_session_state(self, mocker: MockerFixture) -> None:
         """Test removing the token from session state."""

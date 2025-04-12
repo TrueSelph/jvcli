@@ -17,7 +17,7 @@ def client() -> None:
 @click.option("--port", default=8501, help="Port for the client to launch on.")
 @click.option(
     "--jivas_url",
-    default=os.environ.get("JIVAS_URL", "http://localhost:8000"),
+    default=os.environ.get("JIVAS_BASE_URL", "http://localhost:8000"),
     help="URL for the Jivas API.",
 )
 @click.option(
@@ -30,7 +30,7 @@ def launch(port: int, jivas_url: str, studio_url: str) -> None:
     click.echo(
         f"Launching Jivas Client on port {port}, loading action apps from {jivas_url}..."
     )
-    os.environ["JIVAS_URL"] = jivas_url
+    os.environ["JIVAS_BASE_URL"] = jivas_url
     os.environ["JIVAS_STUDIO_URL"] = studio_url
     subprocess.call(
         [

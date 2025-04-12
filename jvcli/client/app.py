@@ -71,7 +71,6 @@ def main() -> None:
     for key in [
         "messages",
         "session_id",
-        "EXPIRATION",
         "agents",
         "actions_data",
         "TOKEN",

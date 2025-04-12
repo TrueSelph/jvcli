@@ -3,6 +3,7 @@
 import calendar
 import datetime
 import os
+from typing import Optional
 
 import pandas as pd
 import requests
@@ -23,7 +24,7 @@ def render(router: StreamlitRouter) -> None:
 
     # Call the healthcheck endpoint and render the collapsible section
     @st.cache_data(show_spinner=True)
-    def fetch_healthcheck(agent_id: str) -> dict:
+    def fetch_healthcheck(agent_id: str) -> Optional[dict]:
         return call_healthcheck(agent_id)
 
     health_data = None
