@@ -79,9 +79,9 @@ def call_api(
                 data=data,
             )
 
-            # if response.status_code == 401:
-            #     st.session_state.EXPIRATION = ""
-            #     return None
+            if response.status_code == 401:
+                st.session_state.EXPIRATION = ""
+                return None
 
             return response
 
