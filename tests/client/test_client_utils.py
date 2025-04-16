@@ -11,10 +11,12 @@ from PIL import Image
 from pytest_mock import MockerFixture
 
 from jvcli.client.lib.utils import (
-    JIVAS_URL,
+    JIVAS_BASE_URL,
     LongStringDumper,
     call_action_walker_exec,
+    call_api,
     call_get_action,
+    call_healthcheck,
     call_import_agent,
     call_list_actions,
     call_list_agents,
@@ -135,20 +137,10 @@ def dummy_function():
         self, mocker: MockerFixture
     ) -> None:
         """Test call_list_agents returns a non-empty list."""
-        # Mock get_user_info to return a valid token
-        mocker.patch(
-            "jvcli.client.lib.utils.get_user_info",
-            return_value={
-                "root_id": "test_root_id",
-                "token": "test_token",
-                "expiration": "test_expiration",
-            },
-        )
-
-        # Mock requests.post to simulate API response
-        mock_post = mocker.patch("requests.post")
-        mock_post.return_value.status_code = 200
-        mock_post.return_value.json.return_value = {
+        # Mock call_api to simulate API response
+        mock_call_api = mocker.patch("jvcli.client.lib.utils.call_api")
+        mock_call_api.return_value.status_code = 200
+        mock_call_api.return_value.json.return_value = {
             "reports": [
                 {"id": "agent_1", "name": "Agent One"},
                 {"id": "agent_2", "name": "Agent Two"},
@@ -158,8 +150,12 @@ def dummy_function():
         # Call the function
         result = call_list_agents()
 
-        # Assert that the result is a non-empty list
+        # Assert that the result is a non-empty list with correct structure
         assert len(result) > 0
+        assert result == [
+            {"id": "agent_1", "label": "Agent One"},
+            {"id": "agent_2", "label": "Agent Two"},
+        ]
 
     def test_call_list_agents_unauthorized(self, mocker: MockerFixture) -> None:
         """Test call_list_agents returns empty list on 401 status code."""
@@ -185,6 +181,7 @@ def dummy_function():
 
     def test_valid_token_returns_actions(self, mocker: MockerFixture) -> None:
         """Test call_list_actions returns actions when token is valid."""
+
         # Mock get_user_info to return a valid token
         mocker.patch(
             "jvcli.client.lib.utils.get_user_info",
@@ -195,20 +192,23 @@ def dummy_function():
             },
         )
 
-        # Mock requests.post response
-        mock_response = mocker.Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {"reports": [["action1", "action2"]]}
-        mock_post = mocker.patch("requests.post", return_value=mock_response)
+        # Mock call_api to simulate API response
+        mock_call_api = mocker.patch("jvcli.client.lib.utils.call_api")
+        mock_call_api.return_value.status_code = 200
+        mock_call_api.return_value.json.return_value = {
+            "reports": [["action1", "action2"]]
+        }
 
         # Call function
-        result = call_list_actions("test_agent")
+        result = call_list_actions(
+            "test_agent", headers={"Authorization": "Bearer test_token"}
+        )
 
-        # Verify request was made correctly
-        mock_post.assert_called_once_with(
-            f"{JIVAS_URL}/walker/list_actions",
-            json={"agent_id": "test_agent"},
+        # Verify call_api was called with correct parameters
+        mock_call_api.assert_called_once_with(
+            "walker/list_actions",
             headers={"Authorization": "Bearer test_token"},
+            json_data={"agent_id": "test_agent"},
         )
 
         # Verify result
@@ -226,10 +226,10 @@ def dummy_function():
             },
         )
 
-        # Mock requests.post to simulate API response with empty reports
-        mock_post = mocker.patch("requests.post")
-        mock_post.return_value.status_code = 200
-        mock_post.return_value.json.return_value = {"reports": []}
+        # Mock call_api to simulate API response
+        mock_call_api = mocker.patch("jvcli.client.lib.utils.call_api")
+        mock_call_api.return_value.status_code = 200
+        mock_call_api.return_value.json.return_value = {"reports": []}
 
         # Call the function
         result = call_list_actions("test_agent")
@@ -250,8 +250,8 @@ def dummy_function():
         )
 
         # Mock requests.post to simulate a 401 Unauthorized response
-        mock_post = mocker.patch("requests.post")
-        mock_post.return_value.status_code = 401
+        mock_call_api = mocker.patch("jvcli.client.lib.utils.call_api")
+        mock_call_api.return_value.status_code = 401
 
         # Call the function
         result = call_list_actions("test_agent")
@@ -282,6 +282,7 @@ def dummy_function():
 
     def test_valid_token_returns_action_data(self, mocker: MockerFixture) -> None:
         """Test call_get_action returns action data when token is valid."""
+
         # Mock get_user_info to return a valid token
         mocker.patch(
             "jvcli.client.lib.utils.get_user_info",
@@ -292,20 +293,23 @@ def dummy_function():
             },
         )
 
-        # Mock requests.post response
-        mock_response = mocker.Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {"reports": [{"action": "test_action"}]}
-        mock_post = mocker.patch("requests.post", return_value=mock_response)
+        # Mock call_api to simulate API response
+        mock_call_api = mocker.patch("jvcli.client.lib.utils.call_api")
+        mock_call_api.return_value.status_code = 200
+        mock_call_api.return_value.json.return_value = {
+            "reports": [{"action": "test_action"}]
+        }
 
         # Call function
-        result = call_get_action("test_agent", "test_action")
+        result = call_get_action(
+            "test_agent", "test_action", headers={"Authorization": "Bearer test_token"}
+        )
 
-        # Verify request was made correctly
-        mock_post.assert_called_once_with(
-            f"{JIVAS_URL}/walker/get_action",
-            json={"agent_id": "test_agent", "action_id": "test_action"},
+        # Verify call_api was called with correct parameters
+        mock_call_api.assert_called_once_with(
+            "walker/get_action",
             headers={"Authorization": "Bearer test_token"},
+            json_data={"agent_id": "test_agent", "action_id": "test_action"},
         )
 
         # Verify result
@@ -347,17 +351,17 @@ def dummy_function():
         )
 
         # Mock requests.post to simulate a 401 Unauthorized response
-        mock_post = mocker.patch("requests.post")
-        mock_post.return_value.status_code = 401
+        mock_call_api = mocker.patch("jvcli.client.lib.utils.call_api")
+        mock_call_api.return_value.status_code = 401
 
         # Call the function
         result = call_get_action("test_agent_id", "test_action_id")
 
-        # Assert that the result is an empty list
-        assert result == []
+        # Assert that the result is an empty dict
+        assert result == {}
 
-    def test_call_get_action_exception_handling(self, mocker: MockerFixture) -> None:
-        """Test call_get_action handles exceptions and returns empty list."""
+    def test_call_api_exception_handling(self, mocker: MockerFixture) -> None:
+        """Test call_api handles exceptions and returns None."""
         # Mock get_user_info to return a valid token
         mocker.patch(
             "jvcli.client.lib.utils.get_user_info",
@@ -368,14 +372,19 @@ def dummy_function():
             },
         )
 
-        # Mock requests.post to raise an exception
-        mocker.patch("requests.post", side_effect=Exception("Test Exception"))
+        # Mock requests.request to raise an exception
+        mocker.patch("requests.request", side_effect=Exception("Test Exception"))
 
         # Call the function
-        result = call_get_action("test_agent_id", "test_action_id")
+        result = call_api(
+            endpoint="test_endpoint",
+            method="POST",
+            headers={"Custom-Header": "test-value"},
+            json_data={"key": "value"},
+        )
 
-        # Verify that the exception was handled and an empty list is returned
-        assert result == []
+        # Verify that the exception was handled and None is returned
+        assert result is None
 
     def test_valid_token_returns_first_report(self, mocker: MockerFixture) -> None:
         """Test call_update_action returns first report when token is valid."""
@@ -389,24 +398,31 @@ def dummy_function():
             },
         )
 
-        # Mock requests.post response
+        # Mock call_api response
         mock_response = mocker.Mock()
         mock_response.status_code = 200
         mock_response.json.return_value = {"reports": [{"result": "test_result"}]}
-        mock_post = mocker.patch("requests.post", return_value=mock_response)
+        mock_call_api = mocker.patch(
+            "jvcli.client.lib.utils.call_api", return_value=mock_response
+        )
 
         # Call function
-        result = call_update_action("test_agent", "test_action", {"test": "data"})
+        result = call_update_action(
+            "test_agent",
+            "test_action",
+            {"test": "data"},
+            headers={"Authorization": "Bearer test_token"},
+        )
 
-        # Verify request was made correctly
-        mock_post.assert_called_once_with(
-            f"{JIVAS_URL}/walker/update_action",
-            json={
+        # Verify call_api was called with correct parameters
+        mock_call_api.assert_called_once_with(
+            "walker/update_action",
+            headers={"Authorization": "Bearer test_token"},
+            json_data={
                 "agent_id": "test_agent",
                 "action_id": "test_action",
                 "action_data": {"test": "data"},
             },
-            headers={"Authorization": "Bearer test_token"},
         )
 
         # Verify result
@@ -424,16 +440,16 @@ def dummy_function():
             },
         )
 
-        # Mock requests.post to simulate API response with empty reports
-        mock_post = mocker.patch("requests.post")
-        mock_post.return_value.status_code = 200
-        mock_post.return_value.json.return_value = {"reports": []}
+        # Mock call_api to simulate API response with empty reports
+        mock_call_api = mocker.patch("jvcli.client.lib.utils.call_api")
+        mock_call_api.return_value.status_code = 200
+        mock_call_api.return_value.json.return_value = {"reports": []}
 
         # Call the function
         result = call_update_action("test_agent_id", "test_action_id", {"key": "value"})
 
         # Assert that the result is an empty dictionary
-        assert len(result) <= 0
+        assert result == {}
 
     def test_call_update_action_unauthorized(self, mocker: MockerFixture) -> None:
         """Test call_update_action returns empty dict on 401 status code."""
@@ -494,7 +510,9 @@ def dummy_function():
         mock_response = mocker.Mock()
         mock_response.status_code = 200
         mock_response.json.return_value = ["result1", "result2"]
-        mock_post = mocker.patch("requests.post", return_value=mock_response)
+        mock_call_api = mocker.patch(
+            "jvcli.client.lib.utils.call_api", return_value=mock_response
+        )
 
         # Test parameters
         agent_id = "test_agent"
@@ -502,14 +520,17 @@ def dummy_function():
         walker = "test_walker"
         args = {"arg1": "value1"}
         files = [("file1.txt", b"content", "text/plain")]
+        headers = {"Authorization": "Bearer test_token"}
 
         # Call function
-        result = call_action_walker_exec(agent_id, module_root, walker, args, files)
+        result = call_action_walker_exec(
+            agent_id, module_root, walker, args, files, headers
+        )
 
-        # Verify request was made correctly
-        mock_post.assert_called_once_with(
-            url=f"{JIVAS_URL}/action/walker",
-            headers={"Authorization": "Bearer test_token"},
+        # Verify call_api was called with correct parameters
+        mock_call_api.assert_called_once_with(
+            f"{JIVAS_BASE_URL}/action/walker",
+            headers=headers,
             data={
                 "agent_id": agent_id,
                 "module_root": module_root,
@@ -534,11 +555,9 @@ def dummy_function():
             },
         )
 
-        # Mock successful API response
-        mock_response = mocker.Mock()
-        mock_response.status_code = 401
-        mock_response.json.return_value = ["result1", "result2"]
-        mock_post = mocker.patch("requests.post", return_value=mock_response)
+        # Mock call_api to simulate a 401 Unauthorized response
+        mock_call_api = mocker.patch("jvcli.client.lib.utils.call_api")
+        mock_call_api.return_value.status_code = 401
 
         # Test parameters
         agent_id = "test_agent"
@@ -546,14 +565,17 @@ def dummy_function():
         walker = "test_walker"
         args = {"arg1": "value1"}
         files = [("file1.txt", b"content", "text/plain")]
+        headers = {"Authorization": "Bearer test_token"}
 
         # Call function
-        result = call_action_walker_exec(agent_id, module_root, walker, args, files)
+        result = call_action_walker_exec(
+            agent_id, module_root, walker, args, files, headers
+        )
 
-        # Verify request was made correctly
-        mock_post.assert_called_once_with(
-            url=f"{JIVAS_URL}/action/walker",
-            headers={"Authorization": "Bearer test_token"},
+        # Verify call_api was called with correct parameters
+        mock_call_api.assert_called_once_with(
+            f"{JIVAS_BASE_URL}/action/walker",
+            headers=headers,
             data={
                 "agent_id": agent_id,
                 "module_root": module_root,
@@ -566,33 +588,8 @@ def dummy_function():
         # Verify result
         assert result == []
 
-    def test_call_action_walker_exec_exception_handling(
-        self, mocker: MockerFixture
-    ) -> None:
-        """Test call_action_walker_exec handles exceptions and returns empty list."""
-        # Mock get_user_info to return a valid token
-        mocker.patch(
-            "jvcli.client.lib.utils.get_user_info",
-            return_value={
-                "root_id": "test_root_id",
-                "token": "test_token",
-                "expiration": "test_expiration",
-            },
-        )
-
-        # Mock requests.post to raise an exception
-        mocker.patch("requests.post", side_effect=Exception("Test Exception"))
-
-        # Call the function
-        result = call_action_walker_exec(
-            "test_agent_id", "test_module_root", "test_walker"
-        )
-
-        # Verify that the exception was handled and an empty list is returned
-        assert result == []
-
     def test_successful_import_agent_call(self, mocker: MockerFixture) -> None:
-        """Test call_import_agent returns agents when token is valid."""
+        """Test call_import_agent returns agents when API call is successful."""
         # Mock get_user_info to return valid token
         mocker.patch(
             "jvcli.client.lib.utils.get_user_info",
@@ -603,29 +600,25 @@ def dummy_function():
             },
         )
 
-        # Mock successful API response
-        mock_response = mocker.Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = ["agent1", "agent2"]
-        mock_post = mocker.patch("requests.post", return_value=mock_response)
+        # Mock call_api to simulate a successful API response
+        mock_call_api = mocker.patch("jvcli.client.lib.utils.call_api")
+        mock_call_api.return_value.status_code = 200
+        mock_call_api.return_value.json.return_value = {
+            "reports": [["agent1", "agent2"]]
+        }
 
         # Test parameters
         descriptor = "test_descriptor"
         headers = {"Custom-Header": "test-value"}
 
-        # Call function
+        # Call the function
         result = call_import_agent(descriptor, headers)
 
-        # Verify request was made correctly
-        mock_post.assert_called_once_with(
-            f"{JIVAS_URL}/walker/import_agent",
-            headers={
-                "Custom-Header": "test-value",
-                "Authorization": "Bearer test_token",
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            },
-            json={"descriptor": descriptor},
+        # Verify call_api was called with correct parameters
+        mock_call_api.assert_called_once_with(
+            "walker/import_agent",
+            headers=headers,
+            json_data={"descriptor": descriptor},
         )
 
         # Verify result
@@ -802,3 +795,180 @@ def dummy_function():
 
         # Adjust expectation to match PyYAML's default behavior
         assert yaml_output == "{items: [apple, banana, cherry]}"
+
+    def test_call_healthcheck_success_with_warning(self, mocker: MockerFixture) -> None:
+        """Test call_healthcheck returns payload with warning and no error."""
+        # Mock get_user_info to return a valid token
+        mocker.patch(
+            "jvcli.client.lib.utils.get_user_info",
+            return_value={
+                "root_id": "test_root_id",
+                "token": "test_token",
+                "expiration": "test_expiration",
+            },
+        )
+
+        # Mock call_api to simulate API response
+        mock_call_api = mocker.patch("jvcli.client.lib.utils.call_api")
+        mock_call_api.return_value.status_code = 200
+        mock_call_api.return_value.json.return_value = {
+            "reports": [
+                {
+                    "status": 200,
+                    "message": "passed_message",
+                    "trace": {
+                        "item_label": {
+                            "status": "true_value",
+                            "message": "warning_message",
+                            "severity": "warning",
+                        }
+                    },
+                }
+            ]
+        }
+
+        # Call the function
+        result = call_healthcheck(
+            "test_agent_id", headers={"Authorization": "Bearer test_token"}
+        )
+
+        # Assert the result
+        assert result == {
+            "status": 200,
+            "message": "passed_message",
+            "trace": {
+                "item_label": {
+                    "status": "true_value",
+                    "message": "warning_message",
+                    "severity": "warning",
+                }
+            },
+        }
+
+    def test_call_healthcheck_failure_with_error(self, mocker: MockerFixture) -> None:
+        """Test call_healthcheck returns payload with error."""
+
+        # Mock get_user_info to return a valid token
+        mocker.patch(
+            "jvcli.client.lib.utils.get_user_info",
+            return_value={
+                "root_id": "test_root_id",
+                "token": "test_token",
+                "expiration": "test_expiration",
+            },
+        )
+
+        # Mock call_api to simulate API response
+        mock_call_api = mocker.patch("jvcli.client.lib.utils.call_api")
+        mock_call_api.return_value.status_code = 503
+        mock_call_api.return_value.json.return_value = {
+            "reports": [
+                {
+                    "status": 503,
+                    "message": "Agent healthcheck failed.",
+                    "trace": {
+                        "jpr_api_key": {
+                            "status": True,
+                            "message": "JPR API key not set. Your agent will not be able to access private JIVAS package repo items.",
+                            "severity": "warning",
+                        },
+                        "LangChainModelAction": {
+                            "status": False,
+                            "message": "Agent healthcheck failed on LangChainModelAction. Inspect configuration and try again.",
+                            "severity": "error",
+                        },
+                    },
+                }
+            ]
+        }
+
+        # Call the function
+        result = call_healthcheck(
+            "test_agent_id", headers={"Authorization": "Bearer test_token"}
+        )
+
+        # Assert the result
+        assert result == {
+            "status": 503,
+            "message": "Agent healthcheck failed.",
+            "trace": {
+                "jpr_api_key": {
+                    "status": True,
+                    "message": "JPR API key not set. Your agent will not be able to access private JIVAS package repo items.",
+                    "severity": "warning",
+                },
+                "LangChainModelAction": {
+                    "status": False,
+                    "message": "Agent healthcheck failed on LangChainModelAction. Inspect configuration and try again.",
+                    "severity": "error",
+                },
+            },
+        }
+
+    def test_call_healthcheck_success_no_warning_or_error(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test call_healthcheck returns empty payload when no warnings or errors."""
+
+        # Mock get_user_info to return a valid token
+        mocker.patch(
+            "jvcli.client.lib.utils.get_user_info",
+            return_value={
+                "root_id": "test_root_id",
+                "token": "test_token",
+                "expiration": "test_expiration",
+            },
+        )
+
+        # Mock call_api to simulate API response
+        mock_call_api = mocker.patch("jvcli.client.lib.utils.call_api")
+        mock_call_api.return_value.status_code = 200
+        mock_call_api.return_value.json.return_value = {"reports": []}
+
+        # Call the function
+        result = call_healthcheck(
+            "test_agent_id", headers={"Authorization": "Bearer test_token"}
+        )
+
+        # Assert the result
+        assert result == {}
+
+    def test_call_healthcheck_incomplete_healthcheck(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test call_healthcheck returns incomplete healthcheck payload."""
+
+        # Mock get_user_info to return a valid token
+        mocker.patch(
+            "jvcli.client.lib.utils.get_user_info",
+            return_value={
+                "root_id": "test_root_id",
+                "token": "test_token",
+                "expiration": "test_expiration",
+            },
+        )
+
+        # Mock call_api to simulate API response
+        mock_call_api = mocker.patch("jvcli.client.lib.utils.call_api")
+        mock_call_api.return_value.status_code = 501
+        mock_call_api.return_value.json.return_value = {
+            "reports": [
+                {
+                    "status": 501,
+                    "message": "Agent healthcheck incomplete.",
+                    "trace": {},
+                }
+            ]
+        }
+
+        # Call the function
+        result = call_healthcheck(
+            "test_agent_id", headers={"Authorization": "Bearer test_token"}
+        )
+
+        # Assert the result
+        assert result == {
+            "status": 501,
+            "message": "Agent healthcheck incomplete.",
+            "trace": {},
+        }

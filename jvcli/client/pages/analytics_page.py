@@ -3,6 +3,7 @@
 import calendar
 import datetime
 import os
+from typing import Optional
 
 import pandas as pd
 import requests
@@ -11,14 +12,79 @@ from streamlit.delta_generator import DeltaGenerator
 from streamlit_javascript import st_javascript
 from streamlit_router import StreamlitRouter
 
-from jvcli.client.lib.utils import get_user_info
+from jvcli.client.lib.utils import call_healthcheck, get_user_info
 
-JIVAS_URL = os.environ.get("JIVAS_URL", "http://localhost:8000")
+JIVAS_BASE_URL = os.environ.get("JIVAS_BASE_URL", "http://localhost:8000")
 
 
 def render(router: StreamlitRouter) -> None:
     """Render the analytics page."""
-    ctx = get_user_info()
+
+    selected_agent = st.session_state.get("selected_agent")
+
+    # Call the healthcheck endpoint and render the collapsible section
+    @st.cache_data(show_spinner=True)
+    def fetch_healthcheck(agent_id: str) -> Optional[dict]:
+        return call_healthcheck(agent_id)
+
+    health_data = None
+
+    if selected_agent:
+        # Clear the cache and fetch fresh data if the button is clicked
+        if st.session_state.get("recheck_health_clicked", False):
+            fetch_healthcheck.clear()
+            health_data = call_healthcheck(selected_agent["id"])
+            st.session_state["recheck_health_clicked"] = False
+        else:
+            # Use cached data
+            health_data = fetch_healthcheck(selected_agent["id"])
+
+        try:
+            if health_data:
+                trace = health_data.get("trace", {})
+                errors = [
+                    f"{key}: {value['message']}"
+                    for key, value in trace.items()
+                    if value.get("severity") == "error"
+                ]
+                warnings = [
+                    f"{key}: {value['message']}"
+                    for key, value in trace.items()
+                    if value.get("severity") == "warning"
+                ]
+
+                if errors:
+                    section_label = "Agent health needs ATTENTION!"
+                    section_color = "red"
+                    expanded = True
+                elif warnings:
+                    section_label = "Agent health is OK (with warnings)"
+                    section_color = "orange"
+                    expanded = True
+                else:
+                    section_label = "Agent health is OK"
+                    section_color = "green"
+                    expanded = False
+
+                with st.expander(
+                    f":{section_color}[{section_label}]", expanded=expanded
+                ):
+                    if errors:
+                        st.error("Errors")
+                        for error in errors:
+                            st.text(f"- {error}")
+                    if warnings:
+                        st.warning("Warnings")
+                        for warning in warnings:
+                            st.text(f"- {warning}")
+                    if st.button("Recheck Health", key="recheck_inside_expander"):
+                        st.session_state["recheck_health_clicked"] = True
+
+            else:
+                st.error("Failed to fetch healthcheck data.")
+        except Exception as e:
+            st.error("An error occurred while fetching healthcheck data.")
+            print(e)
 
     st.header("Analytics", divider=True)
     today = datetime.date.today()
@@ -45,7 +111,7 @@ def render(router: StreamlitRouter) -> None:
     )
 
     try:
-        selected_agent = st.session_state.get("selected_agent")
+        ctx = get_user_info()
         if selected_agent and end_date > start_date:
             interactions_chart(
                 token=ctx["token"],
@@ -87,7 +153,7 @@ def interactions_chart(
     timezone: str,
 ) -> None:
     """Render the interactions chart."""
-    url = f"{JIVAS_URL}/walker/get_interactions_by_date"
+    url = f"{JIVAS_BASE_URL}/walker/get_interactions_by_date"
 
     with st.container(border=True):
         st.subheader("Interactions by Date")
@@ -121,7 +187,7 @@ def users_chart(
     timezone: str,
 ) -> None:
     """Render the users chart."""
-    url = f"{JIVAS_URL}/walker/get_users_by_date"
+    url = f"{JIVAS_BASE_URL}/walker/get_users_by_date"
     with st.container(border=True):
         st.subheader("Users by Date")
         response = requests.post(
@@ -154,7 +220,7 @@ def channels_chart(
     timezone: str,
 ) -> None:
     """Render the channels chart."""
-    url = f"{JIVAS_URL}/walker/get_channels_by_date"
+    url = f"{JIVAS_BASE_URL}/walker/get_channels_by_date"
     with st.container(border=True):
         st.subheader("Channels by Date")
         response = requests.post(

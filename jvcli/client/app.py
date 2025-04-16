@@ -8,10 +8,14 @@ from streamlit_router import StreamlitRouter
 
 from jvcli.client.lib.page import Page
 from jvcli.client.lib.utils import call_list_actions, call_list_agents, load_function
-from jvcli.client.pages import analytics_page, chat_page, dashboard_page, graph_page
+from jvcli.client.pages import (
+    action_dashboard_page,
+    analytics_page,
+    chat_page,
+    graph_page,
+)
 
-JIVAS_URL = os.environ.get("JIVAS_URL", "http://localhost:8000")
-
+JIVAS_BASE_URL = os.environ.get("JIVAS_BASE_URL", "http://localhost:8000")
 JIVAS_STUDIO_URL = os.environ.get("JIVAS_STUDIO_URL", "http://localhost:8989")
 
 
@@ -24,7 +28,7 @@ def handle_agent_selection() -> None:
 
 def login_form() -> None:
     """Render the login form and handle login logic."""
-    login_url = f"{JIVAS_URL}/user/login"
+    login_url = f"{JIVAS_BASE_URL}/user/login"
 
     if os.environ.get("JIVAS_ENVIRONMENT") == "development":
         email = os.environ.get("JIVAS_USER", "admin@jivas.com")
@@ -67,7 +71,6 @@ def main() -> None:
     for key in [
         "messages",
         "session_id",
-        "EXPIRATION",
         "agents",
         "actions_data",
         "TOKEN",
@@ -127,10 +130,14 @@ def main() -> None:
         with st.expander("Menu", True):
             Page(router).item(analytics_page.render, "Dashboard", "/").st_button()
             Page(router).item(chat_page.render, "Chat", "/chat").st_button()
-            Page(router).item(dashboard_page.render, "Actions", "/actions").st_button()
+            Page(router).item(
+                action_dashboard_page.render, "Actions", "/actions"
+            ).st_button()
             Page(router).item(graph_page.render, "Graph", "/graph").st_button()
             st.button(
-                "Logout", on_click=dashboard_page.logout, use_container_width=True
+                "Logout",
+                on_click=action_dashboard_page.logout,
+                use_container_width=True,
             )
 
         with st.expander("Action Apps", False):

@@ -12,7 +12,7 @@ import streamlit as st
 import yaml
 from PIL import Image
 
-JIVAS_URL = os.environ.get("JIVAS_URL", "http://localhost:8000")
+JIVAS_BASE_URL = os.environ.get("JIVAS_BASE_URL", "http://localhost:8000")
 
 
 def load_function(file_path: str, function_name: str, **kwargs: Any) -> Callable:
@@ -50,140 +50,46 @@ def load_function(file_path: str, function_name: str, **kwargs: Any) -> Callable
     return wrapped_func
 
 
-def call_list_agents() -> list:
-    """Call the API to list agents."""
+def call_api(
+    endpoint: str,
+    method: str = "POST",
+    headers: Optional[Dict] = None,
+    json_data: Optional[Dict] = None,
+    files: Optional[List] = None,
+    data: Optional[Dict] = None,
+) -> Optional[requests.Response]:
+    """Generic function to call an API endpoint."""
 
-    ctx = get_user_info()
+    if not endpoint.startswith("http"):
+        endpoint = f"{JIVAS_BASE_URL}/{endpoint}"
 
-    endpoint = f"{JIVAS_URL}/walker/list_agents"
+    ctx = get_user_info()  # Assumes a function that fetches user info
 
-    if ctx["token"]:
+    if ctx.get("token"):
         try:
-            headers = {"Authorization": "Bearer " + ctx["token"]}
-            json = {"reporting": True}
+            headers = headers or {}
+            headers["Authorization"] = f"Bearer {ctx['token']}"
 
-            # call interact
-            response = requests.post(endpoint, json=json, headers=headers)
-
-            if response.status_code == 200:
-                result = response.json().get("reports", [])
-                if len(result) > 0:
-                    return [
-                        {"id": agent["id"], "label": agent["name"]} for agent in result
-                    ]
+            response = requests.request(
+                method=method,
+                url=endpoint,
+                headers=headers,
+                json=json_data,
+                files=files,
+                data=data,
+            )
 
             if response.status_code == 401:
                 st.session_state.EXPIRATION = ""
-                return []
+                return None
+
+            return response
 
         except Exception as e:
             st.session_state.EXPIRATION = ""
-            print("Exception occurred: ", e)
+            st.write(e)
 
-    return []
-
-
-def call_list_actions(agent_id: str) -> list:
-    """Call the API to list actions for a given agent."""
-
-    ctx = get_user_info()
-
-    endpoint = f"{JIVAS_URL}/walker/list_actions"
-
-    if ctx["token"]:
-        try:
-            headers = {"Authorization": "Bearer " + ctx["token"]}
-            json = {"agent_id": agent_id}
-
-            # call interact
-            response = requests.post(endpoint, json=json, headers=headers)
-
-            if response.status_code == 200:
-                result = (response.json()).get("reports", [])
-                if len(result) > 0:
-                    return result[0]
-                else:
-                    return []
-
-            if response.status_code == 401:
-                st.session_state.EXPIRATION = ""
-                return []
-
-        except Exception as e:
-            st.session_state.EXPIRATION = ""
-            print("Exception occurred: ", e)
-
-    return []
-
-
-def call_get_action(agent_id: str, action_id: str) -> list:
-    """Call the API to get a specific action for a given agent."""
-
-    ctx = get_user_info()
-
-    endpoint = f"{JIVAS_URL}/walker/get_action"
-
-    if ctx["token"]:
-        try:
-            headers = {"Authorization": "Bearer " + ctx["token"]}
-            json = {"agent_id": agent_id, "action_id": action_id}
-
-            # call interact
-            response = requests.post(endpoint, json=json, headers=headers)
-
-            if response.status_code == 200:
-                result = (response.json()).get("reports", [])
-                if len(result) > 0:
-                    return result[0]
-                else:
-                    return []
-
-            if response.status_code == 401:
-                st.session_state.EXPIRATION = ""
-                return []
-
-        except Exception as e:
-            st.session_state.EXPIRATION = ""
-            print("Exception occurred: ", e)
-
-    return []
-
-
-def call_update_action(agent_id: str, action_id: str, action_data: dict) -> dict:
-    """Call the API to update a specific action for a given agent."""
-
-    ctx = get_user_info()
-
-    endpoint = f"{JIVAS_URL}/walker/update_action"
-
-    if ctx["token"]:
-        try:
-            headers = {"Authorization": "Bearer " + ctx["token"]}
-            json = {
-                "agent_id": agent_id,
-                "action_id": action_id,
-                "action_data": action_data,
-            }
-
-            # call interact
-            response = requests.post(endpoint, json=json, headers=headers)
-
-            if response.status_code == 200:
-                result = (response.json()).get("reports", [])
-                if len(result) > 0:
-                    return result[0]
-                else:
-                    return {}
-
-            if response.status_code == 401:
-                st.session_state.EXPIRATION = ""
-                return {}
-
-        except Exception as e:
-            st.session_state.EXPIRATION = ""
-            print("Exception occurred: ", e)
-
-    return {}
+    return None
 
 
 def call_action_walker_exec(
@@ -196,81 +102,150 @@ def call_action_walker_exec(
 ) -> list:
     """Call the API to execute a walker action for a given agent."""
 
-    ctx = get_user_info()
+    endpoint = f"{JIVAS_BASE_URL}/action/walker"
 
-    endpoint = f"{JIVAS_URL}/action/walker"
+    # Create form data
+    data = {"agent_id": agent_id, "module_root": module_root, "walker": walker}
 
-    if ctx.get("token"):
-        try:
-            headers = headers if headers else {}
-            headers["Authorization"] = "Bearer " + ctx["token"]
+    if args:
+        data["args"] = json.dumps(args)
 
-            # Create form data
-            data = {"agent_id": agent_id, "module_root": module_root, "walker": walker}
+    file_list = []
 
-            if args:
-                data["args"] = json.dumps(args)
+    if files:
+        for file in files:
+            file_list.append(("attachments", (file[0], file[1], file[2])))
 
-            file_list = []
+    response = call_api(endpoint, headers=headers, data=data, files=file_list)
 
-            if files:
-
-                for file in files:
-                    file_list.append(("attachments", (file[0], file[1], file[2])))
-
-            # Dispatch request
-            response = requests.post(
-                url=endpoint, headers=headers, data=data, files=file_list
-            )
-
-            if response.status_code == 200:
-                result = response.json()
-                return result if result else []
-
-            if response.status_code == 401:
-                st.session_state.EXPIRATION = ""
-                return []
-
-        except Exception as e:
-            st.session_state.EXPIRATION = ""
-            st.write(e)
+    if response and response.status_code == 200:
+        result = response.json()
+        return result if result else []
 
     return []
 
 
-def call_import_agent(
-    descriptor: str,
-    headers: Optional[Dict] = None,
-) -> list:
+def call_healthcheck(agent_id: str, headers: Optional[Dict] = None) -> Optional[dict]:
+    """Call the API to check the health of an agent."""
+    endpoint = "walker/healthcheck"
+    json_data = {"agent_id": agent_id}
+    response = call_api(endpoint, headers=headers, json_data=json_data)
+
+    if response and response.status_code in [200, 501, 503]:
+        result = response.json()
+        reports = result.get("reports", [])
+        return reports[0] if reports else {}
+
+    return {}
+
+
+def call_list_agents(headers: Optional[Dict] = None) -> list:
+    """Call the API to list agents."""
+    endpoint = "walker/list_agents"
+    json_data = {"reporting": True}
+    response = call_api(endpoint, headers=headers, json_data=json_data)
+
+    if response and response.status_code == 200:
+        result = response.json()
+        reports = result.get("reports", [])
+        return [
+            {"id": agent.get("id", ""), "label": agent.get("name", "")}
+            for agent in reports
+        ]
+
+    return []
+
+
+def call_get_agent(agent_id: str, headers: Optional[Dict] = None) -> dict:
+    """Call the API to get details of a specific agent."""
+    endpoint = "walker/get_agent"
+    json_data = {"agent_id": agent_id}
+    response = call_api(endpoint, headers=headers, json_data=json_data)
+
+    if response and response.status_code == 200:
+        result = response.json()
+        reports = result.get("reports", [])
+        return reports[0] if reports else {}
+
+    return {}
+
+
+def call_list_actions(agent_id: str, headers: Optional[Dict] = None) -> list:
+    """Call the API to list actions for a given agent."""
+    endpoint = "walker/list_actions"
+    json_data = {"agent_id": agent_id}
+    response = call_api(endpoint, headers=headers, json_data=json_data)
+
+    if response and response.status_code == 200:
+        result = response.json()
+        reports = result.get("reports", [])
+        return reports[0] if reports else []
+
+    return []
+
+
+def call_get_action(
+    agent_id: str, action_id: str, headers: Optional[Dict] = None
+) -> dict:
+    """Call the API to get a specific action for a given agent."""
+    endpoint = "walker/get_action"
+    json_data = {"agent_id": agent_id, "action_id": action_id}
+    response = call_api(endpoint, headers=headers, json_data=json_data)
+
+    if response and response.status_code == 200:
+        result = response.json()
+        reports = result.get("reports", [])
+        return reports[0] if reports else {}
+
+    return {}
+
+
+def call_update_action(
+    agent_id: str, action_id: str, action_data: dict, headers: Optional[Dict] = None
+) -> dict:
+    """Call the API to update a specific action for a given agent."""
+    endpoint = "walker/update_action"
+    json_data = {
+        "agent_id": agent_id,
+        "action_id": action_id,
+        "action_data": action_data,
+    }
+    response = call_api(endpoint, headers=headers, json_data=json_data)
+
+    if response and response.status_code == 200:
+        result = response.json()
+        reports = result.get("reports", [])
+        return reports[0] if reports else {}
+
+    return {}
+
+
+def call_update_agent(
+    agent_id: str, agent_data: dict, headers: Optional[Dict] = None
+) -> dict:
+    """Call the API to update a specific agent."""
+    endpoint = "walker/update_agent"
+    json_data = {"agent_id": agent_id, "agent_data": agent_data}
+    response = call_api(endpoint, headers=headers, json_data=json_data)
+
+    if response and response.status_code == 200:
+        result = response.json()
+        reports = result.get("reports", [])
+        return reports[0] if reports else {}
+
+    return {}
+
+
+def call_import_agent(descriptor: str, headers: Optional[Dict] = None) -> list:
     """Call the API to import an agent."""
+    endpoint = "walker/import_agent"
+    json_data = {"descriptor": descriptor}
+    response = call_api(endpoint, headers=headers, json_data=json_data)
 
-    ctx = get_user_info()
-
-    endpoint = f"{JIVAS_URL}/walker/import_agent"
-
-    if ctx.get("token"):
-        try:
-            headers = headers if headers else {}
-            headers["Authorization"] = "Bearer " + ctx["token"]
-            headers["Content-Type"] = "application/json"
-            headers["Accept"] = "application/json"
-
-            data = {"descriptor": descriptor}
-
-            # Dispatch request
-            response = requests.post(endpoint, headers=headers, json=data)
-
-            if response.status_code == 200:
-                result = response.json()
-                return result if result else []
-
-            if response.status_code == 401:
-                st.session_state.EXPIRATION = ""
-                return []
-
-        except Exception as e:
-            st.session_state.EXPIRATION = ""
-            st.write(e)
+    if response and response.status_code == 200:
+        result = response.json()
+        reports = result.get("reports", [])
+        return reports[0] if reports else []
 
     return []
 
@@ -278,9 +253,9 @@ def call_import_agent(
 def get_user_info() -> dict:
     """Get user information from the session state."""
     return {
-        "root_id": st.session_state.ROOT_ID,
-        "token": st.session_state.TOKEN,
-        "expiration": st.session_state.EXPIRATION,
+        "root_id": st.session_state.get("ROOT_ID", ""),
+        "token": st.session_state.get("TOKEN", ""),
+        "expiration": st.session_state.get("EXPIRATION", ""),
     }
 
 

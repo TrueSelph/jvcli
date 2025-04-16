@@ -1,4 +1,4 @@
-"""Render the dashboard page of the jvclient with actions data."""
+"""Render the action_dashboard page of the jvclient with actions data."""
 
 import streamlit as st
 from streamlit_elements import dashboard, elements, mui
@@ -10,7 +10,7 @@ from jvcli.client.lib.page import Page
 def render(router: StreamlitRouter) -> None:
     """Render the dashboard page."""
     if actions_data := st.session_state.get("actions_data"):
-        with elements("dashboard"):
+        with elements("action_dashboard"):
             columns = 4
             layout = []
 
@@ -20,7 +20,7 @@ def render(router: StreamlitRouter) -> None:
                 y = (idx // columns) * 2
                 width = 3
                 height = 2
-                # Add an item to the dashboard manually without using `with` if it's not a context manager
+                # Add an item to the action_dashboard manually without using `with` if it's not a context manager
                 layout.append(
                     dashboard.Item(
                         f"card_{idx}",
@@ -36,10 +36,11 @@ def render(router: StreamlitRouter) -> None:
             # now populate the actual cards with content
             with dashboard.Grid(layout):
                 for idx, action in enumerate(actions_data):
+
                     package = action.get("_package", {})
                     title = package.get("meta", {}).get("title", action.get("label"))
                     description = action.get("description", "")
-                    version = action.get("version", "0.0.0")
+                    version = package.get("version", "0.0.0")
                     action_type = package.get("meta", {}).get("type", "action")
                     key = Page.normalize_label(title)
                     enabled_color = "red"

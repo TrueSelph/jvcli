@@ -2,7 +2,7 @@
 
 from pytest_mock import MockerFixture
 
-from jvcli.client.lib.utils import JIVAS_URL
+from jvcli.client.lib.utils import JIVAS_BASE_URL
 from jvcli.client.pages.chat_page import (
     add_agent_message,
     clear_messages,
@@ -32,7 +32,7 @@ class TestClientChatPage:
 
         # Verify requests.post was called with correct params
         mock_post.assert_called_once_with(
-            f"{JIVAS_URL}/action/walker",
+            f"{JIVAS_BASE_URL}/action/walker",
             headers={"Authorization": f"Bearer {token}"},
             data={
                 "args": "{}",
@@ -78,7 +78,7 @@ class TestClientChatPage:
             "test_token", "agent_1", b"audio_data"
         )
         mock_send_message.assert_called_once_with(
-            "Hello", f"{JIVAS_URL}/interact", "test_token", "agent_1", True
+            "Hello", f"{JIVAS_BASE_URL}/interact", "test_token", "agent_1", True
         )
 
     def test_render_with_audio_input_and_user_input(
@@ -113,7 +113,7 @@ class TestClientChatPage:
         render(mock_router)
 
         mock_send_message.assert_called_with(
-            "Hello", f"{JIVAS_URL}/interact", "test_token", "agent_1", True
+            "Hello", f"{JIVAS_BASE_URL}/interact", "test_token", "agent_1", True
         )
 
     def test_render_with_chat_messages(self, mocker: MockerFixture) -> None:

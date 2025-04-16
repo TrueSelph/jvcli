@@ -57,6 +57,7 @@ class TestStartProjectCommand:
             "sh/exportenv.sh",
             "sh/inituser.sh",
             "sh/startclient.sh",
+            "sh/jacclean.sh",
             "tests/README.md",
         ]
 
