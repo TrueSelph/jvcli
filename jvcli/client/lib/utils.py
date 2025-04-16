@@ -118,7 +118,7 @@ def call_action_walker_exec(
 
     response = call_api(endpoint, headers=headers, data=data, files=file_list)
 
-    if response and response.status_code == 200:
+    if response is not None and response.status_code == 200:
         result = response.json()
         return result if result else []
 
@@ -131,7 +131,7 @@ def call_healthcheck(agent_id: str, headers: Optional[Dict] = None) -> Optional[
     json_data = {"agent_id": agent_id}
     response = call_api(endpoint, headers=headers, json_data=json_data)
 
-    if response and response.status_code in [200, 501, 503]:
+    if response is not None and response.status_code in [200, 501, 503]:
         result = response.json()
         reports = result.get("reports", [])
         return reports[0] if reports else {}
@@ -145,7 +145,7 @@ def call_list_agents(headers: Optional[Dict] = None) -> list:
     json_data = {"reporting": True}
     response = call_api(endpoint, headers=headers, json_data=json_data)
 
-    if response and response.status_code == 200:
+    if response is not None and response.status_code == 200:
         result = response.json()
         reports = result.get("reports", [])
         return [
@@ -162,7 +162,7 @@ def call_get_agent(agent_id: str, headers: Optional[Dict] = None) -> dict:
     json_data = {"agent_id": agent_id}
     response = call_api(endpoint, headers=headers, json_data=json_data)
 
-    if response and response.status_code == 200:
+    if response is not None and response.status_code == 200:
         result = response.json()
         reports = result.get("reports", [])
         return reports[0] if reports else {}
@@ -176,7 +176,7 @@ def call_list_actions(agent_id: str, headers: Optional[Dict] = None) -> list:
     json_data = {"agent_id": agent_id}
     response = call_api(endpoint, headers=headers, json_data=json_data)
 
-    if response and response.status_code == 200:
+    if response is not None and response.status_code == 200:
         result = response.json()
         reports = result.get("reports", [])
         return reports[0] if reports else []
@@ -192,7 +192,7 @@ def call_get_action(
     json_data = {"agent_id": agent_id, "action_id": action_id}
     response = call_api(endpoint, headers=headers, json_data=json_data)
 
-    if response and response.status_code == 200:
+    if response is not None and response.status_code == 200:
         result = response.json()
         reports = result.get("reports", [])
         return reports[0] if reports else {}
@@ -212,7 +212,7 @@ def call_update_action(
     }
     response = call_api(endpoint, headers=headers, json_data=json_data)
 
-    if response and response.status_code == 200:
+    if response is not None and response.status_code == 200:
         result = response.json()
         reports = result.get("reports", [])
         return reports[0] if reports else {}
@@ -228,7 +228,7 @@ def call_update_agent(
     json_data = {"agent_id": agent_id, "agent_data": agent_data}
     response = call_api(endpoint, headers=headers, json_data=json_data)
 
-    if response and response.status_code == 200:
+    if response is not None and response.status_code == 200:
         result = response.json()
         reports = result.get("reports", [])
         return reports[0] if reports else {}
@@ -242,7 +242,7 @@ def call_import_agent(descriptor: str, headers: Optional[Dict] = None) -> list:
     json_data = {"descriptor": descriptor}
     response = call_api(endpoint, headers=headers, json_data=json_data)
 
-    if response and response.status_code == 200:
+    if response is not None and response.status_code == 200:
         result = response.json()
         reports = result.get("reports", [])
         return reports[0] if reports else []
