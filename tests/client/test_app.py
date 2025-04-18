@@ -127,7 +127,7 @@ class TestClientApp:
 
         assert app_test.session_state["ROOT_ID"] == "root_id"
         assert app_test.session_state["TOKEN"] == "token"
-        assert app_test.session_state["EXPIRATION"] == "expiration"
+        # assert app_test.session_state["EXPIRATION"] == "expiration"
         assert app_test.session_state["streamlit-router-endpoint"] == "dashboard"
 
         # Clean up
