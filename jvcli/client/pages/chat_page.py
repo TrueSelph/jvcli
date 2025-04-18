@@ -9,12 +9,12 @@ from streamlit_router import StreamlitRouter
 
 from jvcli.client.lib.utils import get_user_info
 
-JIVAS_URL = os.environ.get("JIVAS_URL", "http://localhost:8000")
+JIVAS_BASE_URL = os.environ.get("JIVAS_BASE_URL", "http://localhost:8000")
 
 
 def transcribe_audio(token: str, agent_id: str, file: bytes) -> dict:
     """Transcribe audio using the walker API."""
-    action_walker_url = f"{JIVAS_URL}/action/walker"
+    action_walker_url = f"{JIVAS_BASE_URL}/action/walker"
 
     # Create form data
     files = {"attachments": ("audio.wav", file, "audio/wav")}
@@ -41,7 +41,7 @@ def transcribe_audio(token: str, agent_id: str, file: bytes) -> dict:
 
 def render(router: StreamlitRouter) -> None:
     """Render the chat page."""
-    url = f"{JIVAS_URL}/interact"
+    url = f"{JIVAS_BASE_URL}/interact"
     ctx = get_user_info()
 
     st.header("Chat", divider=True)

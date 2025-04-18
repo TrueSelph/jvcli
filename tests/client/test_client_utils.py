@@ -11,7 +11,7 @@ from PIL import Image
 from pytest_mock import MockerFixture
 
 from jvcli.client.lib.utils import (
-    JIVAS_URL,
+    JIVAS_BASE_URL,
     LongStringDumper,
     call_action_walker_exec,
     call_get_action,
@@ -206,7 +206,7 @@ def dummy_function():
 
         # Verify request was made correctly
         mock_post.assert_called_once_with(
-            f"{JIVAS_URL}/walker/list_actions",
+            f"{JIVAS_BASE_URL}/walker/list_actions",
             json={"agent_id": "test_agent"},
             headers={"Authorization": "Bearer test_token"},
         )
@@ -303,7 +303,7 @@ def dummy_function():
 
         # Verify request was made correctly
         mock_post.assert_called_once_with(
-            f"{JIVAS_URL}/walker/get_action",
+            f"{JIVAS_BASE_URL}/walker/get_action",
             json={"agent_id": "test_agent", "action_id": "test_action"},
             headers={"Authorization": "Bearer test_token"},
         )
@@ -400,7 +400,7 @@ def dummy_function():
 
         # Verify request was made correctly
         mock_post.assert_called_once_with(
-            f"{JIVAS_URL}/walker/update_action",
+            f"{JIVAS_BASE_URL}/walker/update_action",
             json={
                 "agent_id": "test_agent",
                 "action_id": "test_action",
@@ -508,7 +508,7 @@ def dummy_function():
 
         # Verify request was made correctly
         mock_post.assert_called_once_with(
-            url=f"{JIVAS_URL}/action/walker",
+            url=f"{JIVAS_BASE_URL}/action/walker",
             headers={"Authorization": "Bearer test_token"},
             data={
                 "agent_id": agent_id,
@@ -552,7 +552,7 @@ def dummy_function():
 
         # Verify request was made correctly
         mock_post.assert_called_once_with(
-            url=f"{JIVAS_URL}/action/walker",
+            url=f"{JIVAS_BASE_URL}/action/walker",
             headers={"Authorization": "Bearer test_token"},
             data={
                 "agent_id": agent_id,
@@ -618,7 +618,7 @@ def dummy_function():
 
         # Verify request was made correctly
         mock_post.assert_called_once_with(
-            f"{JIVAS_URL}/walker/import_agent",
+            f"{JIVAS_BASE_URL}/walker/import_agent",
             headers={
                 "Custom-Header": "test-value",
                 "Authorization": "Bearer test_token",

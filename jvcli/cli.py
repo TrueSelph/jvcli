@@ -7,7 +7,9 @@ from jvcli.commands.auth import login, logout, signup
 from jvcli.commands.client import client
 from jvcli.commands.create import create
 from jvcli.commands.download import download
+from jvcli.commands.importagent import importagent
 from jvcli.commands.info import info
+from jvcli.commands.initagents import initagents
 from jvcli.commands.publish import publish
 from jvcli.commands.startproject import startproject
 from jvcli.commands.studio import studio
@@ -30,6 +32,8 @@ jvcli.add_command(info)
 jvcli.add_command(studio)
 jvcli.add_command(client)
 jvcli.add_command(startproject)
+jvcli.add_command(importagent)
+jvcli.add_command(initagents)
 
 # Register standalone commands
 jvcli.add_command(signup)

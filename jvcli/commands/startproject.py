@@ -40,7 +40,6 @@ def startproject(project_name: str, version: str, no_env: bool) -> None:
         "tests": [],
         "actions": [],
         "daf": [],
-        "sh": [],
     }
 
     try:

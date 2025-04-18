@@ -4,7 +4,7 @@ import datetime
 
 from pytest_mock import MockerFixture
 
-from jvcli.client.lib.utils import JIVAS_URL
+from jvcli.client.lib.utils import JIVAS_BASE_URL
 from jvcli.client.pages.analytics_page import (
     channels_chart,
     interactions_chart,
@@ -97,7 +97,7 @@ class TestClientAnalyticsPage:
 
         # Verify API call
         mock_requests.assert_called_once_with(
-            url=f"{JIVAS_URL}/walker/get_interactions_by_date",
+            url=f"{JIVAS_BASE_URL}/walker/get_interactions_by_date",
             json={
                 "agent_id": "test_agent",
                 "reporting": True,
@@ -152,7 +152,7 @@ class TestClientAnalyticsPage:
 
         # Verify API call
         mock_post.assert_called_once_with(
-            url=f"{JIVAS_URL}/walker/get_users_by_date",
+            url=f"{JIVAS_BASE_URL}/walker/get_users_by_date",
             json={
                 "agent_id": agent_id,
                 "reporting": True,
@@ -205,7 +205,7 @@ class TestClientAnalyticsPage:
 
         # Verify API call
         mock_post.assert_called_once_with(
-            url=f"{JIVAS_URL}/walker/get_channels_by_date",
+            url=f"{JIVAS_BASE_URL}/walker/get_channels_by_date",
             json={
                 "agent_id": agent_id,
                 "reporting": True,

@@ -5,6 +5,7 @@ import re
 import tarfile
 
 import click
+import requests
 import yaml
 from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.version import InvalidVersion, Version
@@ -202,3 +203,28 @@ def compress_package_to_tgz(source_path: str, output_filename: str) -> str:
                 arcname = os.path.relpath(file_path, start=source_path)
                 tar.add(file_path, arcname=arcname)
     return output_filename
+
+
+def load_env_if_present() -> None:
+    """Load environment variables from .env file if present."""
+    env_path = os.path.join(os.getcwd(), ".env")
+    if os.path.exists(env_path):
+        try:
+            import dotenv
+
+            dotenv.load_dotenv(env_path)
+        except ImportError:
+            click.echo(
+                "dotenv package not installed. Environment variables will not be loaded from .env file."
+            )
+
+
+def is_server_running() -> bool:
+    """Check if the server is running by sending a request to the API."""
+    try:
+        response = requests.get(
+            os.environ.get("JIVAS_BASE_URL", "http://localhost:8000/healthz")
+        )
+        return response.status_code == 200
+    except requests.ConnectionError:
+        return False

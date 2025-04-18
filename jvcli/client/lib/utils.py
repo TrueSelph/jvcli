@@ -12,7 +12,7 @@ import streamlit as st
 import yaml
 from PIL import Image
 
-JIVAS_URL = os.environ.get("JIVAS_URL", "http://localhost:8000")
+JIVAS_BASE_URL = os.environ.get("JIVAS_BASE_URL", "http://localhost:8000")
 
 
 def load_function(file_path: str, function_name: str, **kwargs: Any) -> Callable:
@@ -55,7 +55,7 @@ def call_list_agents() -> list:
 
     ctx = get_user_info()
 
-    endpoint = f"{JIVAS_URL}/walker/list_agents"
+    endpoint = f"{JIVAS_BASE_URL}/walker/list_agents"
 
     if ctx["token"]:
         try:
@@ -88,7 +88,7 @@ def call_list_actions(agent_id: str) -> list:
 
     ctx = get_user_info()
 
-    endpoint = f"{JIVAS_URL}/walker/list_actions"
+    endpoint = f"{JIVAS_BASE_URL}/walker/list_actions"
 
     if ctx["token"]:
         try:
@@ -121,7 +121,7 @@ def call_get_action(agent_id: str, action_id: str) -> list:
 
     ctx = get_user_info()
 
-    endpoint = f"{JIVAS_URL}/walker/get_action"
+    endpoint = f"{JIVAS_BASE_URL}/walker/get_action"
 
     if ctx["token"]:
         try:
@@ -154,7 +154,7 @@ def call_update_action(agent_id: str, action_id: str, action_data: dict) -> dict
 
     ctx = get_user_info()
 
-    endpoint = f"{JIVAS_URL}/walker/update_action"
+    endpoint = f"{JIVAS_BASE_URL}/walker/update_action"
 
     if ctx["token"]:
         try:
@@ -198,7 +198,7 @@ def call_action_walker_exec(
 
     ctx = get_user_info()
 
-    endpoint = f"{JIVAS_URL}/action/walker"
+    endpoint = f"{JIVAS_BASE_URL}/action/walker"
 
     if ctx.get("token"):
         try:
@@ -246,7 +246,7 @@ def call_import_agent(
 
     ctx = get_user_info()
 
-    endpoint = f"{JIVAS_URL}/walker/import_agent"
+    endpoint = f"{JIVAS_BASE_URL}/walker/import_agent"
 
     if ctx.get("token"):
         try:

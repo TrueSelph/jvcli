@@ -13,7 +13,7 @@ from streamlit_router import StreamlitRouter
 
 from jvcli.client.lib.utils import get_user_info
 
-JIVAS_URL = os.environ.get("JIVAS_URL", "http://localhost:8000")
+JIVAS_BASE_URL = os.environ.get("JIVAS_BASE_URL", "http://localhost:8000")
 
 
 def render(router: StreamlitRouter) -> None:
@@ -87,7 +87,7 @@ def interactions_chart(
     timezone: str,
 ) -> None:
     """Render the interactions chart."""
-    url = f"{JIVAS_URL}/walker/get_interactions_by_date"
+    url = f"{JIVAS_BASE_URL}/walker/get_interactions_by_date"
 
     with st.container(border=True):
         st.subheader("Interactions by Date")
@@ -121,7 +121,7 @@ def users_chart(
     timezone: str,
 ) -> None:
     """Render the users chart."""
-    url = f"{JIVAS_URL}/walker/get_users_by_date"
+    url = f"{JIVAS_BASE_URL}/walker/get_users_by_date"
     with st.container(border=True):
         st.subheader("Users by Date")
         response = requests.post(
@@ -154,7 +154,7 @@ def channels_chart(
     timezone: str,
 ) -> None:
     """Render the channels chart."""
-    url = f"{JIVAS_URL}/walker/get_channels_by_date"
+    url = f"{JIVAS_BASE_URL}/walker/get_channels_by_date"
     with st.container(border=True):
         st.subheader("Channels by Date")
         response = requests.post(
