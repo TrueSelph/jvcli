@@ -1,6 +1,7 @@
 """Tests for the jvcli.auth module."""
 
 import json
+import os
 
 import pytest
 from click.testing import CliRunner
@@ -12,6 +13,7 @@ from jvcli.auth import (
     delete_token,
     load_namespaces,
     load_token,
+    login_jivas,
     save_token,
 )
 from jvcli.commands.auth import login, logout, signup
@@ -118,6 +120,73 @@ class TestAuth:
 
         with pytest.raises(PermissionError):
             load_token()
+
+    def test_login_jivas_success(self, mocker: MockerFixture) -> None:
+        """Test successful login to Jivas with valid credentials."""
+        # Mock environment variables
+        mock_environ_get = mocker.patch("os.environ.get")
+        mock_environ_get.side_effect = lambda key, default=None: {
+            "JIVAS_USER": "test@example.com",
+            "JIVAS_PASSWORD": "password123",  # pragma: allowlist secret
+            "JIVAS_BASE_URL": "https://api.example.com",
+        }.get(key, default)
+
+        # Mock the response from requests.post
+        mock_response = mocker.Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"token": "test_jivas_token"}
+        mock_post = mocker.patch("requests.post", return_value=mock_response)
+
+        # Mock environment setter instead of os.environ.get
+        mocker.patch.dict("os.environ", {})
+
+        # Call the function
+        token = login_jivas()
+
+        # Verify results
+        assert token == "test_jivas_token"
+        mock_post.assert_called_once_with(
+            "https://api.example.com/user/login",
+            json={
+                "email": "test@example.com",
+                "password": "password123",  # pragma: allowlist secret
+            },
+        )
+        # Check that the token was set in os.environ directly
+        assert "JIVAS_TOKEN" in os.environ
+        assert os.environ["JIVAS_TOKEN"] == "test_jivas_token"
+
+    def test_login_jivas_missing_env_vars(self, mocker: MockerFixture) -> None:
+        """Test login_jivas raises error when environment variables are missing."""
+        # Mock environment variables to be missing
+        mocker.patch("os.environ.get", return_value=None)
+
+        # Verify ValueError is raised
+        with pytest.raises(
+            ValueError,
+            match="JIVAS_USER and JIVAS_PASSWORD environment variables are required",
+        ):
+            login_jivas()
+
+    def test_login_jivas_failed_request(self, mocker: MockerFixture) -> None:
+        """Test login_jivas raises error when the login request fails."""
+        # Mock environment variables
+        mock_environ_get = mocker.patch("os.environ.get")
+        mock_environ_get.side_effect = lambda key, default=None: {
+            "JIVAS_USER": "test@example.com",
+            "JIVAS_PASSWORD": "password123",  # pragma: allowlist secret
+            "JIVAS_BASE_URL": "https://api.example.com",
+        }.get(key, default)
+
+        # Mock the response from requests.post for a failed request
+        mock_response = mocker.Mock()
+        mock_response.status_code = 401
+        mock_response.text = "Invalid credentials"
+        mocker.patch("requests.post", return_value=mock_response)
+
+        # Verify ValueError is raised with correct message
+        with pytest.raises(ValueError, match="Login failed: Invalid credentials"):
+            login_jivas()
 
 
 class TestAuthCommands:

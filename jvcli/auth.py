@@ -3,6 +3,8 @@
 import json
 import os
 
+import requests
+
 TOKEN_FILE = os.path.expanduser("~/.jvcli_token")
 
 
@@ -43,3 +45,24 @@ def load_namespaces() -> str:
     """Load the namespaces from the token."""
     token = load_token()
     return token.get("namespaces", {}).get("default", "anonymous")
+
+
+def login_jivas() -> str:
+    """Login to Jivas and return the token."""
+    email = os.environ.get("JIVAS_USER")
+    password = os.environ.get("JIVAS_PASSWORD")
+    if not email or not password:
+        raise ValueError(
+            "JIVAS_USER and JIVAS_PASSWORD environment variables are required."
+        )
+
+    login_url = (
+        f"{os.environ.get('JIVAS_BASE_URL', 'http://localhost:8000')}/user/login"
+    )
+    response = requests.post(login_url, json={"email": email, "password": password})
+    if response.status_code == 200:
+        data = response.json()
+        os.environ["JIVAS_TOKEN"] = data["token"]
+        return data["token"]
+    else:
+        raise ValueError(f"Login failed: {response.text}")

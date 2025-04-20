@@ -3,15 +3,19 @@
 import os
 import tarfile
 import tempfile
+from typing import Any
 
 import click
 import pytest
+import requests
 from pytest_mock import MockerFixture
 
 from jvcli.utils import (
     TEMPLATES_DIR,
     compress_package_to_tgz,
+    is_server_running,
     is_version_compatible,
+    load_env_if_present,
     validate_dependencies,
     validate_name,
     validate_package_name,
@@ -250,6 +254,37 @@ class TestUtilsFullCoverage:
         assert is_version_compatible("1.0.0-alpha", "1.0.0-alpha")
         assert not is_version_compatible("1.0.0-alpha", "1.0.0-beta")
 
+    def test_is_version_compatible_invalid_specifier(self) -> None:
+        """Test is_version_compatible with invalid specifiers."""
+
+        # Test invalid tilde specifiers with insufficient release components
+        assert not is_version_compatible(
+            "1.0.0", "~1"
+        )  # Only major version, needs minor version too
+        assert not is_version_compatible("1.0.0", "~v1")  # Prefixed version
+        assert not is_version_compatible(
+            "1.0.0", "~1-alpha"
+        )  # Pre-release without minor
+        assert not is_version_compatible("1.0.0", "~a.b.c")  # Non-numeric version parts
+
+    def test_is_version_compatible_caret_with_zero_major_minor(self) -> None:
+        """Test is_version_compatible with caret operator for 0.0.x versions."""
+        # For ^0.0.1, only the exact version (and builds) should match
+        assert is_version_compatible("0.0.1", "^0.0.1")
+        assert is_version_compatible("0.0.1+build", "^0.0.1")
+
+        # Patch version changes should NOT be compatible when major and minor are 0
+        assert not is_version_compatible("0.0.2", "^0.0.1")
+        assert not is_version_compatible("0.0.0", "^0.0.1")
+
+        # Minor and major changes are definitely not compatible
+        assert not is_version_compatible("0.1.0", "^0.0.1")
+        assert not is_version_compatible("1.0.0", "^0.0.1")
+
+        # Different pattern: For ^0.0.0, only 0.0.0 should match
+        assert is_version_compatible("0.0.0", "^0.0.0")
+        assert not is_version_compatible("0.0.1", "^0.0.0")
+
     # ---------- compress_package_to_tgz ----------
     def test_compress_package_to_tgz_includes_and_excludes(self) -> None:
         """Test compress_package_to_tgz includes and excludes proper files."""
@@ -346,3 +381,89 @@ class TestUtilsFullCoverage:
         mock_open.assert_called_once_with(
             os.path.join(TEMPLATES_DIR, "2.0.0", "agent_info.yaml"), "r"
         )
+
+    def test_load_env_if_present(self, mocker: MockerFixture) -> None:
+        """Test load_env_if_present function with different scenarios."""
+        # Mock filesystem operations
+        mock_exists = mocker.patch("os.path.exists")
+        mocker.patch("os.getcwd", return_value="/fake/path")
+        mock_echo = mocker.patch("click.echo")
+
+        # Test case: .env file doesn't exist
+        mock_exists.return_value = False
+        load_env_if_present()
+        # Verify path was checked
+        env_path = os.path.join("/fake/path", ".env")
+        mock_exists.assert_called_once_with(env_path)
+        mock_echo.assert_not_called()
+
+        # Test case: .env file exists
+        mock_exists.reset_mock()
+        mock_exists.return_value = True
+
+        # Create mock dotenv module for import replacement
+        mock_dotenv = mocker.MagicMock()
+
+        # Replace import mechanism to handle both success and failure cases
+        real_import = __import__
+
+        def mock_import(name: str, *args: Any, **kwargs: Any) -> Any:
+            if name == "dotenv":
+                return mock_dotenv
+            return real_import(name, *args, **kwargs)
+
+        with mocker.patch("builtins.__import__", side_effect=mock_import):
+            load_env_if_present()
+            mock_dotenv.load_dotenv.assert_called_once_with(env_path)
+
+        # Test import error case
+        mock_echo.reset_mock()
+
+        def mock_import_error(name: str, *args: Any, **kwargs: Any) -> Any:
+            if name == "dotenv":
+                raise ImportError("No module named 'dotenv'")
+            return real_import(name, *args, **kwargs)
+
+        with mocker.patch("builtins.__import__", side_effect=mock_import_error):
+            load_env_if_present()
+            mock_echo.assert_called_once()
+
+    def test_is_server_running(self, mocker: MockerFixture) -> None:
+        """Test is_server_running function with different server responses."""
+        # Mock the requests.get function
+        mock_get = mocker.patch("requests.get")
+
+        # Test case: Server is running (200 response)
+        mock_response = mocker.MagicMock()
+        mock_response.status_code = 200
+        mock_get.return_value = mock_response
+        assert is_server_running() is True
+        mock_get.assert_called_with("http://localhost:8000/healthz")
+
+        # Test case: Server is not running (ConnectionError)
+        mock_get.reset_mock()
+        mock_get.side_effect = requests.ConnectionError("Connection refused")
+        assert is_server_running() is False
+
+        # Test case: Server returns non-200 response
+        mock_get.reset_mock()
+        mock_response.status_code = 500
+        mock_get.side_effect = None
+        mock_get.return_value = mock_response
+        assert is_server_running() is False
+
+        # Test case: With custom JIVAS_BASE_URL
+        mock_get.reset_mock()
+        mock_response.status_code = 200
+        mock_get.return_value = mock_response
+        # Fix: Use the actual os.environ object, not a string
+        old_value = os.environ.get("JIVAS_BASE_URL")
+        try:
+            os.environ["JIVAS_BASE_URL"] = "http://example.com/api"
+            assert is_server_running() is True
+            mock_get.assert_called_with("http://example.com/api/healthz")
+        finally:
+            if old_value:
+                os.environ["JIVAS_BASE_URL"] = old_value
+            else:
+                os.environ.pop("JIVAS_BASE_URL", None)

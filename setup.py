@@ -45,6 +45,7 @@ setup(
         "streamlit-elements>=0.1.0",
         "streamlit-router>=0.1.8",
         "streamlit-javascript>=0.1.5",
+        "python-dotenv>=1.0.0",
     ],
     extras_require={
         "dev": [
