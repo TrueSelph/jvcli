@@ -11,7 +11,9 @@ import requests
 
 from jvcli.auth import login_jivas
 from jvcli.commands.clean import clean
-from jvcli.utils import is_server_running
+from jvcli.utils import is_server_running, load_env_if_present
+
+load_env_if_present()
 
 
 @click.group()
