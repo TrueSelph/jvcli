@@ -34,7 +34,7 @@ class TestStartProjectCommand:
         mock_makedirs.assert_any_call("test_project", exist_ok=True)
 
         # Verify subdirectories creation
-        expected_dirs = ["tests", "actions", "daf", "sh"]
+        expected_dirs = ["tests", "actions", "daf"]
         for dir_name in expected_dirs:
             mock_makedirs.assert_any_call(
                 os.path.join("test_project", dir_name), exist_ok=True
@@ -51,13 +51,6 @@ class TestStartProjectCommand:
             "README.md",
             "actions/README.md",
             "daf/README.md",
-            "sh/initagents.sh",
-            "sh/importagent.sh",
-            "sh/serve.sh",
-            "sh/exportenv.sh",
-            "sh/inituser.sh",
-            "sh/startclient.sh",
-            "sh/jacclean.sh",
             "tests/README.md",
         ]
 

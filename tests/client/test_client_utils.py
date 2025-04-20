@@ -16,11 +16,13 @@ from jvcli.client.lib.utils import (
     call_action_walker_exec,
     call_api,
     call_get_action,
+    call_get_agent,
     call_healthcheck,
     call_import_agent,
     call_list_actions,
     call_list_agents,
     call_update_action,
+    call_update_agent,
     decode_base64_image,
     jac_yaml_dumper,
     load_function,
@@ -972,3 +974,358 @@ def dummy_function():
             "message": "Agent healthcheck incomplete.",
             "trace": {},
         }
+
+    def test_call_api_success(self, mocker: MockerFixture) -> None:
+        """Test call_api returns response when request is successful."""
+        # Mock get_user_info to return a valid token
+        mocker.patch(
+            "jvcli.client.lib.utils.get_user_info",
+            return_value={
+                "root_id": "test_root_id",
+                "token": "test_token",
+                "expiration": "test_expiration",
+            },
+        )
+
+        # Mock streamlit session state using patch
+        mock_session_state = mocker.MagicMock()
+        mocker.patch("jvcli.client.lib.utils.st.session_state", mock_session_state)
+
+        # Mock requests.request for successful response
+        mock_response = mocker.Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"test": "data"}
+        mock_request = mocker.patch("requests.request", return_value=mock_response)
+
+        # Test parameters
+        endpoint = "test_endpoint"
+        method = "POST"
+        headers = {"Custom-Header": "test-value"}
+        json_data = {"key": "value"}
+        files = [("file1.txt", b"content", "text/plain")]
+        data = {"form_key": "form_value"}
+
+        # Call function
+        result = call_api(
+            endpoint=endpoint,
+            method=method,
+            headers=headers,
+            json_data=json_data,
+            files=files,
+            data=data,
+        )
+
+        # Verify requests.request was called with correct parameters
+        mock_request.assert_called_once_with(
+            method=method,
+            url=f"{JIVAS_BASE_URL}/{endpoint}",
+            headers={
+                "Custom-Header": "test-value",
+                "Authorization": "Bearer test_token",
+            },
+            json=json_data,
+            files=files,
+            data=data,
+        )
+
+        # Verify result
+        assert result == mock_response
+        assert result.status_code == 200
+        assert result.json() == {"test": "data"}
+
+    def test_call_api_unauthorized(self, mocker: MockerFixture) -> None:
+        """Test call_api returns None when response is 401 Unauthorized."""
+        # Mock get_user_info to return a valid token
+        mocker.patch(
+            "jvcli.client.lib.utils.get_user_info",
+            return_value={
+                "root_id": "test_root_id",
+                "token": "test_token",
+                "expiration": "test_expiration",
+            },
+        )
+
+        # Mock streamlit session state as an object with attributes, not a dictionary
+        mock_session_state = mocker.MagicMock()
+        mock_session_state.EXPIRATION = ""
+        mocker.patch("jvcli.client.lib.utils.st.session_state", mock_session_state)
+
+        # Mock requests.request for 401 response
+        mock_response = mocker.Mock()
+        mock_response.status_code = 401
+        mocker.patch("requests.request", return_value=mock_response)
+
+        # Call function
+        result = call_api("test_endpoint")
+
+        # Verify session state was updated (as an attribute, not a dict key)
+        assert mock_session_state.EXPIRATION == ""
+
+        # Verify result
+        assert result is None
+
+    def test_call_api_no_token(self, mocker: MockerFixture) -> None:
+        """Test call_api returns None when no token is available."""
+        # Mock get_user_info to return no token
+        mocker.patch(
+            "jvcli.client.lib.utils.get_user_info",
+            return_value={
+                "root_id": "test_root_id",
+                "token": "",
+                "expiration": "",
+            },
+        )
+
+        # Mock requests.request
+        mock_request = mocker.patch("requests.request")
+
+        # Call function
+        result = call_api("test_endpoint")
+
+        # Verify requests.request was not called
+        mock_request.assert_not_called()
+
+        # Verify result
+        assert result is None
+
+    def test_call_api_with_absolute_url(self, mocker: MockerFixture) -> None:
+        """Test call_api handles absolute URLs correctly."""
+        # Mock get_user_info to return a valid token
+        mocker.patch(
+            "jvcli.client.lib.utils.get_user_info",
+            return_value={
+                "root_id": "test_root_id",
+                "token": "test_token",
+                "expiration": "test_expiration",
+            },
+        )
+
+        # Mock requests.request
+        mock_response = mocker.Mock()
+        mock_response.status_code = 200
+        mock_request = mocker.patch("requests.request", return_value=mock_response)
+
+        # Use an absolute URL
+        absolute_url = "https://example.com/api/resource"
+
+        # Call function
+        call_api(endpoint=absolute_url)
+
+        # Verify the URL was not modified
+        mock_request.assert_called_once()
+        call_args = mock_request.call_args[1]
+        assert call_args["url"] == absolute_url
+
+    def test_call_get_agent_success(self, mocker: MockerFixture) -> None:
+        """Test call_get_agent returns agent details when API call is successful."""
+        # Mock get_user_info to return valid token
+        mocker.patch(
+            "jvcli.client.lib.utils.get_user_info",
+            return_value={
+                "root_id": "test_root_id",
+                "token": "test_token",
+                "expiration": "test_expiration",
+            },
+        )
+
+        # Mock call_api to simulate a successful API response
+        mock_call_api = mocker.patch("jvcli.client.lib.utils.call_api")
+        mock_call_api.return_value.status_code = 200
+        mock_call_api.return_value.json.return_value = {
+            "reports": [
+                {
+                    "id": "test_agent_id",
+                    "name": "Test Agent",
+                    "description": "A test agent",
+                    "config": {"key": "value"},
+                }
+            ]
+        }
+
+        # Test parameters
+        agent_id = "test_agent_id"
+        headers = {"Custom-Header": "test-value"}
+
+        # Call the function
+        result = call_get_agent(agent_id, headers)
+
+        # Verify call_api was called with correct parameters
+        mock_call_api.assert_called_once_with(
+            "walker/get_agent",
+            headers=headers,
+            json_data={"agent_id": agent_id},
+        )
+
+        # Verify result
+        assert result == {
+            "id": "test_agent_id",
+            "name": "Test Agent",
+            "description": "A test agent",
+            "config": {"key": "value"},
+        }
+
+    def test_call_get_agent_empty_result(self, mocker: MockerFixture) -> None:
+        """Test call_get_agent returns empty dict when no agent is found."""
+        # Mock get_user_info to return a valid token
+        mocker.patch(
+            "jvcli.client.lib.utils.get_user_info",
+            return_value={
+                "root_id": "test_root_id",
+                "token": "test_token",
+                "expiration": "test_expiration",
+            },
+        )
+
+        # Mock call_api to simulate API response with empty reports
+        mock_call_api = mocker.patch("jvcli.client.lib.utils.call_api")
+        mock_call_api.return_value.status_code = 200
+        mock_call_api.return_value.json.return_value = {"reports": []}
+
+        # Call the function
+        result = call_get_agent("test_agent_id")
+
+        # Assert that the result is an empty dictionary
+        assert result == {}
+
+    def test_call_get_agent_unauthorized(self, mocker: MockerFixture) -> None:
+        """Test call_get_agent returns empty dict on 401 status code."""
+        # Mock get_user_info to return a valid token
+        mocker.patch(
+            "jvcli.client.lib.utils.get_user_info",
+            return_value={
+                "root_id": "test_root_id",
+                "token": "test_token",
+                "expiration": "test_expiration",
+            },
+        )
+
+        # Mock streamlit session state as an object with attributes
+        mock_session_state = mocker.MagicMock()
+        mock_session_state.EXPIRATION = ""
+        mocker.patch("jvcli.client.lib.utils.st.session_state", mock_session_state)
+
+        # Mock call_api to return None (which happens on 401)
+        mocker.patch("jvcli.client.lib.utils.call_api", return_value=None)
+
+        # Call the function
+        result = call_get_agent("test_agent_id")
+
+        # Assert that the result is an empty dict
+        assert result == {}
+
+    def test_call_update_agent_success(self, mocker: MockerFixture) -> None:
+        """Test call_update_agent returns updated agent data when API call succeeds."""
+        # Mock get_user_info to return valid token
+        mocker.patch(
+            "jvcli.client.lib.utils.get_user_info",
+            return_value={
+                "root_id": "test_root_id",
+                "token": "test_token",
+                "expiration": "test_expiration",
+            },
+        )
+
+        # Mock call_api to simulate a successful API response
+        mock_call_api = mocker.patch("jvcli.client.lib.utils.call_api")
+        mock_call_api.return_value.status_code = 200
+        mock_call_api.return_value.json.return_value = {
+            "reports": [
+                {
+                    "id": "test_agent_id",
+                    "name": "Updated Agent",
+                    "description": "An updated test agent",
+                    "config": {"updated_key": "updated_value"},
+                }
+            ]
+        }
+
+        # Test parameters
+        agent_id = "test_agent_id"
+        agent_data = {
+            "name": "Updated Agent",
+            "description": "An updated test agent",
+            "config": {"updated_key": "updated_value"},
+        }
+        headers = {"Custom-Header": "test-value"}
+
+        # Call the function
+        result = call_update_agent(agent_id, agent_data, headers)
+
+        # Verify call_api was called with correct parameters
+        mock_call_api.assert_called_once_with(
+            "walker/update_agent",
+            headers=headers,
+            json_data={"agent_id": agent_id, "agent_data": agent_data},
+        )
+
+        # Verify result
+        assert result == {
+            "id": "test_agent_id",
+            "name": "Updated Agent",
+            "description": "An updated test agent",
+            "config": {"updated_key": "updated_value"},
+        }
+
+    def test_call_update_agent_empty_result(self, mocker: MockerFixture) -> None:
+        """Test call_update_agent returns empty dict when API returns empty reports."""
+        # Mock get_user_info to return a valid token
+        mocker.patch(
+            "jvcli.client.lib.utils.get_user_info",
+            return_value={
+                "root_id": "test_root_id",
+                "token": "test_token",
+                "expiration": "test_expiration",
+            },
+        )
+
+        # Mock call_api to simulate API response with empty reports
+        mock_call_api = mocker.patch("jvcli.client.lib.utils.call_api")
+        mock_call_api.return_value.status_code = 200
+        mock_call_api.return_value.json.return_value = {"reports": []}
+
+        # Test parameters
+        agent_id = "test_agent_id"
+        agent_data = {"name": "Updated Agent"}
+
+        # Call the function
+        result = call_update_agent(agent_id, agent_data)
+
+        # Verify call_api was called with correct parameters
+        mock_call_api.assert_called_once_with(
+            "walker/update_agent",
+            headers=None,
+            json_data={"agent_id": agent_id, "agent_data": agent_data},
+        )
+
+        # Assert that the result is an empty dictionary
+        assert result == {}
+
+    def test_call_update_agent_unauthorized(self, mocker: MockerFixture) -> None:
+        """Test call_update_agent returns empty dict on 401 status code."""
+        # Mock get_user_info to return a valid token
+        mocker.patch(
+            "jvcli.client.lib.utils.get_user_info",
+            return_value={
+                "root_id": "test_root_id",
+                "token": "test_token",
+                "expiration": "test_expiration",
+            },
+        )
+
+        # Mock streamlit session state as an object with attributes
+        mock_session_state = mocker.MagicMock()
+        mock_session_state.EXPIRATION = ""
+        mocker.patch("jvcli.client.lib.utils.st.session_state", mock_session_state)
+
+        # Mock call_api to return None (which happens on 401)
+        mocker.patch("jvcli.client.lib.utils.call_api", return_value=None)
+
+        # Test parameters
+        agent_id = "test_agent_id"
+        agent_data = {"name": "Updated Agent"}
+
+        # Call the function
+        result = call_update_agent(agent_id, agent_data)
+
+        # Assert that the result is an empty dict
+        assert result == {}

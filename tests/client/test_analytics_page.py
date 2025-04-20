@@ -85,6 +85,75 @@ class TestClientAnalyticsPage:
         mock_header.assert_called_once_with("Analytics", divider=True)
         mock_text.assert_called_once_with("Invalid date range")
 
+    def test_render_with_recheck_health_clicked(self, mocker: MockerFixture) -> None:
+        """Test rendering analytics when recheck_health_clicked is True."""
+        # Create a mutable dict to track session state changes
+        mock_session_state = {
+            "selected_agent": {"id": "test_agent_id"},
+            "recheck_health_clicked": True,
+        }
+
+        # Mock session state with our mutable dictionary
+        mocker.patch("streamlit.session_state", mock_session_state)
+
+        # Mock streamlit widgets
+        mocker.patch("streamlit.header")
+        mocker.patch(
+            "streamlit.date_input",
+            return_value=(
+                datetime.date(2024, 1, 1),
+                datetime.date(2024, 1, 31),
+            ),
+        )
+        mocker.patch(
+            "jvcli.client.pages.analytics_page.st.columns", return_value=(1, 2, 3)
+        )
+        mocker.patch(
+            "jvcli.client.pages.analytics_page.st_javascript",
+            return_value="test_timezone",
+        )
+        mocker.patch("streamlit.expander")
+
+        # Mock get_user_info
+        mocker.patch(
+            "jvcli.client.pages.analytics_page.get_user_info",
+            return_value={
+                "root_id": "test_root_id",
+                "token": "test_token",
+                "expiration": "test_expiration",
+            },
+        )
+
+        # Mock cache_data.clear() method
+        mock_cache_data = mocker.patch(
+            "jvcli.client.pages.analytics_page.st.cache_data"
+        )
+        mock_cache_instance = mock_cache_data.return_value
+        mock_cache_instance.clear = mocker.Mock()
+
+        # Mock call_healthcheck to return data directly
+        mock_call_healthcheck = mocker.patch(
+            "jvcli.client.pages.analytics_page.call_healthcheck",
+            return_value={"trace": {}},
+        )
+
+        # Mock chart functions
+        mocker.patch("jvcli.client.pages.analytics_page.interactions_chart")
+        mocker.patch("jvcli.client.pages.analytics_page.users_chart")
+        mocker.patch("jvcli.client.pages.analytics_page.channels_chart")
+
+        # Mock router
+        mock_router = mocker.Mock()
+
+        # Call function
+        render(mock_router)
+
+        # Verify that call_healthcheck was called directly with the agent id
+        mock_call_healthcheck.assert_called_once_with("test_agent_id")
+
+        # Verify recheck_health_clicked was set back to False
+        assert mock_session_state["recheck_health_clicked"] is False
+
     def test_render_with_invalid_date_range(self, mocker: MockerFixture) -> None:
         """Test rendering analytics page with an invalid date range."""
         # Mock session state
@@ -267,3 +336,370 @@ class TestClientAnalyticsPage:
         mock_subheader.assert_called_once_with("Channels by Date")
         mock_line_chart.assert_called_once()
         mock_metric.metric.assert_called_once_with("Channels", 15)
+
+    def test_render_with_health_errors(self, mocker: MockerFixture) -> None:
+        """Test rendering analytics when health data contains errors."""
+        # Create a mock session state
+        mock_session_state = {
+            "selected_agent": {"id": "test_agent_id"},
+            "recheck_health_clicked": False,
+        }
+        mocker.patch("streamlit.session_state", mock_session_state)
+
+        # Mock streamlit widgets
+        mocker.patch("streamlit.header")
+        mock_date_input = mocker.patch("streamlit.date_input")
+        mock_date_input.return_value = (
+            datetime.date(2024, 1, 1),
+            datetime.date(2024, 1, 31),
+        )
+        mocker.patch(
+            "jvcli.client.pages.analytics_page.st.columns", return_value=(1, 2, 3)
+        )
+        mocker.patch(
+            "jvcli.client.pages.analytics_page.st_javascript",
+            return_value="test_timezone",
+        )
+
+        # Mock the expander and its returned context
+        mock_expander = mocker.patch("streamlit.expander")
+        mock_expander_context = mocker.MagicMock()
+        mock_expander.return_value.__enter__.return_value = mock_expander_context
+
+        # Mock error and text functions
+        mock_error = mocker.patch("streamlit.error")
+        mock_text = mocker.patch("streamlit.text")
+        mock_button = mocker.patch("streamlit.button")
+        mock_button.return_value = False  # Don't trigger recheck
+
+        # Mock get_user_info
+        mocker.patch(
+            "jvcli.client.pages.analytics_page.get_user_info",
+            return_value={
+                "root_id": "test_root_id",
+                "token": "test_token",
+                "expiration": "test_expiration",
+            },
+        )
+
+        # Mock health data with errors
+        mock_health_data = {
+            "trace": {
+                "error1": {"severity": "error", "message": "This is a critical error"},
+                "error2": {"severity": "error", "message": "Another critical error"},
+                "warning1": {
+                    "severity": "warning",
+                    "message": "This is just a warning",
+                },
+            }
+        }
+
+        # Mock call_healthcheck to return health data with errors
+        # We're mocking the underlying function that fetch_healthcheck calls
+        mocker.patch(
+            "jvcli.client.pages.analytics_page.call_healthcheck",
+            return_value=mock_health_data,
+        )
+
+        # Create a mock for st.cache_data that returns a function that returns our mock data
+        mock_cache_data = mocker.patch(
+            "jvcli.client.pages.analytics_page.st.cache_data"
+        )
+        mock_cache_data.return_value = lambda func: lambda agent_id: mock_health_data
+
+        # Mock chart functions
+        mock_interactions = mocker.patch(
+            "jvcli.client.pages.analytics_page.interactions_chart"
+        )
+        mock_users = mocker.patch("jvcli.client.pages.analytics_page.users_chart")
+        mock_channels = mocker.patch("jvcli.client.pages.analytics_page.channels_chart")
+
+        # Mock router
+        mock_router = mocker.Mock()
+
+        # Call function
+        render(mock_router)
+
+        # Verify expander was created with the correct parameters
+        mock_expander.assert_called_once_with(
+            ":red[Agent health needs ATTENTION!]", expanded=True
+        )
+
+        # Verify error section was created
+        mock_error.assert_called_once_with("Errors")
+
+        # Verify error messages were displayed
+        mock_text.assert_any_call("- error1: This is a critical error")
+        mock_text.assert_any_call("- error2: Another critical error")
+
+        # Verify chart functions were called
+        mock_interactions.assert_called_once()
+        mock_users.assert_called_once()
+        mock_channels.assert_called_once()
+
+    def test_render_with_health_warnings(self, mocker: MockerFixture) -> None:
+        """Test rendering analytics when health data contains warnings but no errors."""
+        # Create a mock session state
+        mock_session_state = {
+            "selected_agent": {"id": "test_agent_id"},
+            "recheck_health_clicked": False,
+        }
+        mocker.patch("streamlit.session_state", mock_session_state)
+
+        # Mock streamlit widgets
+        mocker.patch("streamlit.header")
+        mocker.patch(
+            "streamlit.date_input",
+            return_value=(
+                datetime.date(2024, 1, 1),
+                datetime.date(2024, 1, 31),
+            ),
+        )
+        mocker.patch(
+            "jvcli.client.pages.analytics_page.st.columns", return_value=(1, 2, 3)
+        )
+        mocker.patch(
+            "jvcli.client.pages.analytics_page.st_javascript",
+            return_value="test_timezone",
+        )
+
+        # Mock the expander and its returned context
+        mock_expander = mocker.patch("streamlit.expander")
+        mock_expander_context = mocker.MagicMock()
+        mock_expander.return_value.__enter__.return_value = mock_expander_context
+
+        # Mock warning and text functions
+        mock_warning = mocker.patch("streamlit.warning")
+        mock_text = mocker.patch("streamlit.text")
+        mock_button = mocker.patch("streamlit.button")
+        mock_button.return_value = False  # Don't trigger recheck
+
+        # Mock get_user_info
+        mocker.patch(
+            "jvcli.client.pages.analytics_page.get_user_info",
+            return_value={
+                "root_id": "test_root_id",
+                "token": "test_token",
+                "expiration": "test_expiration",
+            },
+        )
+
+        # Mock health data with warnings only (no errors)
+        mock_health_data = {
+            "trace": {
+                "warning1": {"severity": "warning", "message": "This is a warning"},
+                "warning2": {"severity": "warning", "message": "Another warning"},
+            }
+        }
+
+        # Mock call_healthcheck to return health data with warnings
+        mocker.patch(
+            "jvcli.client.pages.analytics_page.call_healthcheck",
+            return_value=mock_health_data,
+        )
+
+        # Create a mock for st.cache_data that returns a function that returns our mock data
+        mock_cache_data = mocker.patch(
+            "jvcli.client.pages.analytics_page.st.cache_data"
+        )
+        mock_cache_data.return_value = lambda func: lambda agent_id: mock_health_data
+
+        # Mock chart functions
+        mock_interactions = mocker.patch(
+            "jvcli.client.pages.analytics_page.interactions_chart"
+        )
+        mock_users = mocker.patch("jvcli.client.pages.analytics_page.users_chart")
+        mock_channels = mocker.patch("jvcli.client.pages.analytics_page.channels_chart")
+
+        # Mock router
+        mock_router = mocker.Mock()
+
+        # Call function
+        render(mock_router)
+
+        # Verify expander was created with the correct parameters (orange for warnings)
+        mock_expander.assert_called_once_with(
+            ":orange[Agent health is OK (with warnings)]", expanded=True
+        )
+
+        # Verify warnings section was created
+        mock_warning.assert_called_once_with("Warnings")
+
+        # Verify warning messages were displayed
+        mock_text.assert_any_call("- warning1: This is a warning")
+        mock_text.assert_any_call("- warning2: Another warning")
+
+        # Verify chart functions were called
+        mock_interactions.assert_called_once()
+        mock_users.assert_called_once()
+        mock_channels.assert_called_once()
+
+    def test_recheck_health_button_inside_expander(self, mocker: MockerFixture) -> None:
+        """Test clicking the Recheck Health button inside the expander."""
+        # Create a mock session state
+        mock_session_state = {
+            "selected_agent": {"id": "test_agent_id"},
+            "recheck_health_clicked": False,
+        }
+        mocker.patch("streamlit.session_state", mock_session_state)
+
+        # Mock streamlit widgets
+        mocker.patch("streamlit.header")
+        mocker.patch(
+            "streamlit.date_input",
+            return_value=(
+                datetime.date(2024, 1, 1),
+                datetime.date(2024, 1, 31),
+            ),
+        )
+        mocker.patch(
+            "jvcli.client.pages.analytics_page.st.columns", return_value=(1, 2, 3)
+        )
+        mocker.patch(
+            "jvcli.client.pages.analytics_page.st_javascript",
+            return_value="test_timezone",
+        )
+
+        # Mock the expander and its returned context
+        mock_expander = mocker.patch("streamlit.expander")
+        mock_expander_context = mocker.MagicMock()
+        mock_expander.return_value.__enter__.return_value = mock_expander_context
+
+        # Mock text and warning functions
+        mocker.patch("streamlit.text")
+        mocker.patch("streamlit.warning")
+
+        # Set button to return True (simulating a click)
+        mock_button = mocker.patch("streamlit.button")
+        mock_button.return_value = True
+
+        # Mock get_user_info
+        mocker.patch(
+            "jvcli.client.pages.analytics_page.get_user_info",
+            return_value={
+                "root_id": "test_root_id",
+                "token": "test_token",
+                "expiration": "test_expiration",
+            },
+        )
+
+        # Mock health data with warnings only
+        mock_health_data = {
+            "trace": {
+                "warning1": {"severity": "warning", "message": "This is a warning"}
+            }
+        }
+
+        # Mock call_healthcheck
+        mocker.patch(
+            "jvcli.client.pages.analytics_page.call_healthcheck",
+            return_value=mock_health_data,
+        )
+
+        # Create a mock for st.cache_data
+        mock_cache_data = mocker.patch(
+            "jvcli.client.pages.analytics_page.st.cache_data"
+        )
+        mock_cache_data.return_value = lambda func: lambda agent_id: mock_health_data
+
+        # Mock chart functions
+        mocker.patch("jvcli.client.pages.analytics_page.interactions_chart")
+        mocker.patch("jvcli.client.pages.analytics_page.users_chart")
+        mocker.patch("jvcli.client.pages.analytics_page.channels_chart")
+
+        # Mock router
+        mock_router = mocker.Mock()
+
+        # Call function
+        render(mock_router)
+
+        # Verify button was called with the correct parameters
+        mock_button.assert_called_once_with(
+            "Recheck Health", key="recheck_inside_expander"
+        )
+
+        # Verify recheck_health_clicked was set to True after button click
+        assert mock_session_state["recheck_health_clicked"] is True
+
+    def test_render_with_healthcheck_exception(self, mocker: MockerFixture) -> None:
+        """Test rendering analytics when an exception occurs in healthcheck processing."""
+        # Create a mock session state
+        mock_session_state = {
+            "selected_agent": {"id": "test_agent_id"},
+            "recheck_health_clicked": False,
+        }
+        mocker.patch("streamlit.session_state", mock_session_state)
+
+        # Mock streamlit widgets
+        mocker.patch("streamlit.header")
+        mocker.patch(
+            "streamlit.date_input",
+            return_value=(
+                datetime.date(2024, 1, 1),
+                datetime.date(2024, 1, 31),
+            ),
+        )
+        mocker.patch(
+            "jvcli.client.pages.analytics_page.st.columns", return_value=(1, 2, 3)
+        )
+        mocker.patch(
+            "jvcli.client.pages.analytics_page.st_javascript",
+            return_value="test_timezone",
+        )
+
+        # Mock error function
+        mock_error = mocker.patch("streamlit.error")
+
+        # Mock get_user_info
+        mocker.patch(
+            "jvcli.client.pages.analytics_page.get_user_info",
+            return_value={
+                "root_id": "test_root_id",
+                "token": "test_token",
+                "expiration": "test_expiration",
+            },
+        )
+
+        # Create a malformed health data that will cause an exception
+        mock_health_data = {
+            "trace": None
+        }  # This will cause an exception when trying to iterate over trace.items()
+
+        # Mock call_healthcheck to return malformed data
+        mocker.patch(
+            "jvcli.client.pages.analytics_page.call_healthcheck",
+            return_value=mock_health_data,
+        )
+
+        # Create a mock for st.cache_data that returns our malformed data
+        mock_cache_data = mocker.patch(
+            "jvcli.client.pages.analytics_page.st.cache_data"
+        )
+        mock_cache_data.return_value = lambda func: lambda agent_id: mock_health_data
+
+        # Mock print to avoid printing to console during test
+        mock_print = mocker.patch("builtins.print")
+
+        # Mock chart functions - store the mocks for later assertions
+        mock_interactions = mocker.patch(
+            "jvcli.client.pages.analytics_page.interactions_chart"
+        )
+        mock_users = mocker.patch("jvcli.client.pages.analytics_page.users_chart")
+        mock_channels = mocker.patch("jvcli.client.pages.analytics_page.channels_chart")
+
+        # Mock router
+        mock_router = mocker.Mock()
+
+        # Call function
+        render(mock_router)
+
+        # Verify error message was displayed
+        mock_error.assert_any_call("An error occurred while fetching healthcheck data.")
+
+        # Verify exception was printed (or at least print was called)
+        mock_print.assert_called_once()
+
+        # Verify chart functions were still called - use the mock objects created earlier
+        mock_interactions.assert_called_once()
+        mock_users.assert_called_once()
+        mock_channels.assert_called_once()

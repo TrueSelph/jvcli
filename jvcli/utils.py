@@ -222,9 +222,9 @@ def load_env_if_present() -> None:
 def is_server_running() -> bool:
     """Check if the server is running by sending a request to the API."""
     try:
-        response = requests.get(
-            os.environ.get("JIVAS_BASE_URL", "http://localhost:8000/healthz")
-        )
+        base_url = os.environ.get("JIVAS_BASE_URL", "http://localhost:8000")
+        healthz_url = f"{base_url}/healthz"
+        response = requests.get(healthz_url)
         return response.status_code == 200
     except requests.ConnectionError:
         return False
