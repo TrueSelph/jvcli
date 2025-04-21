@@ -152,7 +152,7 @@ def initagents() -> None:
     Initialize agents in the Jivas system.
 
     Usage:
-        jvcli initagents
+        jvcli server initagents
     """
 
     # Check if server is running
@@ -203,7 +203,7 @@ def importagent(agent_name: str, version: str) -> None:
     Import an agent from a DAF package.
 
     Usage:
-        jvcli importagent <agent_name> [--version <jivas_version>]
+        jvcli server importagent <agent_name> [--version <jivas_version>]
     """
 
     # Check if server is running
