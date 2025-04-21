@@ -231,7 +231,7 @@ node {architype} :{node_class}: {{
         app_code = """
 \"\"\" This module renders the streamlit app for the {title}. \"\"\"
 
-from jvclient.client.lib.widgets import app_controls, app_header, app_update_action
+from jvcli.client.lib.widgets import app_controls, app_header, app_update_action
 
 from streamlit_router import StreamlitRouter
 
