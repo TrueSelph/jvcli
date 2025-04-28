@@ -46,6 +46,8 @@ setup(
         "streamlit-router>=0.1.8",
         "streamlit-javascript>=0.1.5",
         "python-dotenv>=1.0.0",
+        "semver>=3.0.4",
+        "node-semver>=0.9.0",
     ],
     extras_require={
         "dev": [

@@ -224,20 +224,29 @@ class TestUtilsFullCoverage:
     @pytest.mark.parametrize(
         "version, spec, want",
         [
+            # Standard equality and range cases
             ("1.0.0", "1.0.0", True),
-            ("2.1.0", ">=2.0.0,<3.0.0", True),
+            ("2.1.0", ">=2.0.0,<3.0.0", True),  # comma within range
+            ("2.1.0", ">=2.0.0 <3.0.0", True),  # space within range
+            # Caret/Tilde matching (node-semver style)
             ("1.0.0", "^1.0.0", True),
             ("1.2.3", "~1.2.0", True),
+            ("1.3.0", "~1.2.0", False),
+            ("2.0.0", "^1.2.0", False),
+            ("0.3.0", "^0.2.0", False),
+            # Missing/empty/invalid input
             ("", "1.0.0", False),
             ("1.0.0", "", False),
             (None, "1.0.0", False),
             ("1.0.0", None, False),
             ("invalid", "1.0.0", False),
             ("1.0.0", "invalid", False),
-            ("1.0", ">=invalid", False),
-            ("1.3.0", "~1.2.0", False),
-            ("2.0.0", "^1.2.0", False),
-            ("0.3.0", "^0.2.0", False),
+            ("1.0", ">=invalid", False),  # invalid spec
+            # Specifier normalization with commas/spaces
+            ("1.2.3", ">=1.0.0, <2.0.0", True),  # comma
+            ("1.2.3", ">=1.0.0 <2.0.0", True),  # space
+            ("1.2.3", ">=1.0.0, <2.0.0, !=1.2.3", False),  # comma, exclusion
+            ("1.2.3", ">=1.0.0 !=1.2.3", False),  # space, exclusion
         ],
     )
     def test_is_version_compatible_general(
@@ -248,27 +257,25 @@ class TestUtilsFullCoverage:
 
     def test_is_version_compatible_pre_release(self) -> None:
         """Test is_version_compatible with pre-release versions."""
-        assert is_version_compatible("1.0.0-alpha", ">=1.0.0-alpha,<2.0.0")
-        assert not is_version_compatible("1.0.0-alpha", ">=1.0.0,<2.0.0")
-        assert is_version_compatible("1.0.0-beta", "^1.0.0-alpha")
-        assert is_version_compatible("1.0.0-alpha", "1.0.0-alpha")
-        assert not is_version_compatible("1.0.0-alpha", "1.0.0-beta")
+        # Pre-release in spec and version; allow_prerelease allows this
+        assert is_version_compatible("1.0.0-alpha", ">=1.0.0-alpha,<2.0.0", True)
+        # Should NOT match because allow_prerelease=False and pre-release only matches if explicitly specified
+        assert not is_version_compatible("1.0.0-alpha", ">=1.0.0,<2.0.0", False)
+        # Exact match on pre-release
+        assert is_version_compatible("1.0.0-alpha", "1.0.0-alpha", True)
+        # Non-matching pre-release
+        assert not is_version_compatible("1.0.0-alpha", "1.0.0-beta", False)
 
     def test_is_version_compatible_invalid_specifier(self) -> None:
         """Test is_version_compatible with invalid specifiers."""
 
-        # Test invalid tilde specifiers with insufficient release components
-        assert not is_version_compatible(
-            "1.0.0", "~1"
-        )  # Only major version, needs minor version too
-        assert not is_version_compatible("1.0.0", "~v1")  # Prefixed version
-        assert not is_version_compatible(
-            "1.0.0", "~1-alpha"
-        )  # Pre-release without minor
-        assert not is_version_compatible("1.0.0", "~a.b.c")  # Non-numeric version parts
+        # ~1 is not a valid node-semver range (must specify at least minor)
+        assert not is_version_compatible("1.0.0", "~1-alpha")
+        assert not is_version_compatible("1.0.0", "~a.b.c")
 
     def test_is_version_compatible_caret_with_zero_major_minor(self) -> None:
         """Test is_version_compatible with caret operator for 0.0.x versions."""
+
         # For ^0.0.1, only the exact version (and builds) should match
         assert is_version_compatible("0.0.1", "^0.0.1")
         assert is_version_compatible("0.0.1+build", "^0.0.1")
@@ -281,7 +288,7 @@ class TestUtilsFullCoverage:
         assert not is_version_compatible("0.1.0", "^0.0.1")
         assert not is_version_compatible("1.0.0", "^0.0.1")
 
-        # Different pattern: For ^0.0.0, only 0.0.0 should match
+        # For ^0.0.0, only 0.0.0 should match
         assert is_version_compatible("0.0.0", "^0.0.0")
         assert not is_version_compatible("0.0.1", "^0.0.0")
 

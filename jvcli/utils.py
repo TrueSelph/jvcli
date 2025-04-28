@@ -5,10 +5,10 @@ import re
 import tarfile
 
 import click
+import nodesemver
 import requests
+import semver
 import yaml
-from packaging.specifiers import InvalidSpecifier, SpecifierSet
-from packaging.version import InvalidVersion, Version
 
 from jvcli import __supported__jivas__versions__
 from jvcli.api import RegistryAPI
@@ -91,58 +91,36 @@ def validate_package_name(name: str) -> None:
         )
 
 
-def is_version_compatible(version: str, specifiers: str) -> bool:
+def is_version_compatible(
+    version: str, specifiers: str, allow_prerelease: bool = True
+) -> bool:
     """
-    Determines if the provided version satisfies the given specifiers or exact version match.
+    Determines if the provided version satisfies the given specifiers or exact version match,
+    with an option to consider prerelease versions.
 
-    Args:
-    - version (str): The version to be checked. E.g., "2.1.0".
-    - specifiers (str): The version specifier set or exact version. E.g., "2.1.0", ">=0.2,<0.3", or "^2.0.0".
-
-    Returns:
-    - bool: True if the version satisfies the specifier set or exact match, False otherwise.
+    - Converts comma-separated specifiers to space-separated (Node-style).
     """
+    if not version or not specifiers:
+        return False
+
+    # Replace comma(s) and optional surrounding spaces with one space
+    specifiers = re.sub(r"\s*,\s*", " ", specifiers.strip())
+
     try:
-        # Handle edge cases for empty strings or None inputs
-        if not version or not specifiers:
-            return False
-
-        # Handle exact version equality when no special characters present
-        if all(c not in specifiers for c in "<>!=~^*,"):
-            return Version(version) == Version(specifiers)
-
-        # Handle tilde (~) syntax, as in npm semver, if used
-        if specifiers.startswith("~"):
-            base_version = Version(specifiers[1:])
-            if base_version.release is None or len(base_version.release) < 2:
-                raise InvalidSpecifier(f"Invalid tilde specifier: '{specifiers}'")
-            next_minor = base_version.minor + 1
-            specifiers = f">={base_version},<{base_version.major}.{next_minor}.0"
-
-        # Explicitly handle caret (^) syntax (npm semver style)
-        elif specifiers.startswith("^"):
-            base_version = Version(specifiers[1:])
-            major, minor, patch = (
-                base_version.major,
-                base_version.minor,
-                base_version.micro,
+        # For nodesemver
+        return nodesemver.satisfies(
+            version, specifiers, include_prerelease=allow_prerelease
+        )
+    except ImportError:
+        try:
+            # For python-semver >=3.0.0
+            # semver>=3.0.0 supports allow_prerelease
+            return semver.satisfies(
+                version, specifiers, allow_prerelease=allow_prerelease
             )
-
-            if major > 0:
-                specifiers = f">={base_version},<{major + 1}.0.0"
-            elif major == 0 and minor > 0:
-                specifiers = f">={base_version},<0.{minor + 1}.0"
-            else:  # major == 0 and minor == 0
-                specifiers = f">={base_version},<0.0.{patch + 1}"
-
-        # Finally check using the SpecifierSet
-        specifier_set = SpecifierSet(specifiers)
-        parsed_version = Version(version)
-
-        return parsed_version in specifier_set
-
-    except (InvalidVersion, InvalidSpecifier, TypeError) as e:
-        print(f"Version parsing error: {e}")
+        except Exception:
+            return False
+    except Exception:
         return False
 
 
