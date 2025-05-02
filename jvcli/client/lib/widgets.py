@@ -35,10 +35,25 @@ def app_header(agent_id: str, action_id: str, info: dict) -> tuple:
     if description := st.session_state[model_key].get("description", False):
         st.text(description)
 
-    # Manage the 'enabled' field
-    st.session_state[model_key]["enabled"] = st.checkbox(
-        "Enabled", key="enabled", value=st.session_state[model_key]["enabled"]
+    def update_action() -> None:
+        st.session_state[model_key]
+        call_update_action(
+            agent_id=agent_id,
+            action_id=action_id,
+            action_data=st.session_state[model_key],
+        )
+
+    current_state = st.session_state[model_key]["enabled"]
+    new_state = st.checkbox(
+        "Enabled",
+        key="enabled",
+        value=current_state,
     )
+
+    if new_state != current_state:
+        st.session_state[model_key]["enabled"] = new_state
+        update_action()
+        st.rerun()
 
     return model_key, module_root
 
@@ -62,7 +77,10 @@ def app_controls(agent_id: str, action_id: str) -> None:
 
         if item_key not in st.session_state.get("model_key", {}).keys():
             # Special case for 'api_key' to render as a password field
-            if item_key == "api_key":
+            if any(
+                keyword in item_key.lower() or item_key.lower() in keyword
+                for keyword in ["password", "token", "api_key", "key", "secret"]
+            ):
                 st.session_state[model_key][item_key] = st.text_input(
                     label, value=value, type="password", key=item_key
                 )

@@ -79,6 +79,7 @@ def render(router: StreamlitRouter) -> None:
                             st.text(f"- {warning}")
                     if st.button("Recheck Health", key="recheck_inside_expander"):
                         st.session_state["recheck_health_clicked"] = True
+                        st.rerun()
 
             else:
                 st.error("Failed to fetch healthcheck data.")
