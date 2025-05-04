@@ -157,7 +157,7 @@ def _publish_common(
             return
 
         try:
-            validate_dependencies(info_data["package"].get("dependencies", {}))
+            validate_dependencies(info_data["package"].get("dependencies", {}), token)
             click.secho("Dependencies validated successfully.", fg="yellow")
         except ValueError as e:
             click.secho(f"Error validating dependencies: {e}", fg="red")

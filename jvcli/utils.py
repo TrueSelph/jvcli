@@ -3,6 +3,7 @@
 import os
 import re
 import tarfile
+from typing import Optional
 
 import click
 import nodesemver
@@ -124,9 +125,11 @@ def is_version_compatible(
         return False
 
 
-def validate_dependencies(dependencies: dict) -> None:
+def validate_dependencies(dependencies: dict, token: Optional[str] = None) -> None:
     """Ensure all dependencies exist in the registry."""
+
     missing_dependencies = []
+
     for dep, specifier in dependencies.items():
         if dep == "jivas":
             # Check if the version is in list of supported versions
@@ -141,8 +144,9 @@ def validate_dependencies(dependencies: dict) -> None:
         elif dep == "actions":
             # Check if action exists in the registry
             for name, spec in specifier.items():
+
                 package = RegistryAPI.download_package(
-                    name=name, version=spec, suppress_error=True
+                    name=name, version=spec, token=token, suppress_error=True
                 )
 
                 if not package:
