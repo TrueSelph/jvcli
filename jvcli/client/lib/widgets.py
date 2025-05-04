@@ -63,80 +63,99 @@ def snake_to_title(snake_str: str) -> str:
     return snake_str.replace("_", " ").title()
 
 
-def app_controls(agent_id: str, action_id: str) -> None:
+def app_controls(
+    agent_id: str,
+    action_id: str,
+    hidden: Optional[list] = None,
+    masked: Optional[list] = None,
+) -> None:
     """Render the app controls for a given agent and action."""
+    if hidden is None:
+        hidden = []
+    if masked is None:
+        masked = []
+
     # Generate a dynamic key for the session state using the action_id
     model_key = f"model_{agent_id}_{action_id}"
+
+    # Combine default masked keys with additional keys specified in 'masked'
+    default_masked_keys = [
+        "password",
+        "token",
+        "api_key",
+        "key",
+        "secret",
+        "secret_key",
+    ]
+    all_masked_keys = set(default_masked_keys + masked)
 
     # Recursive function to handle nested dictionaries
     def render_fields(item_key: str, value: Any, parent_key: str = "") -> None:
         """Render fields based on their type."""
 
+        # Skip rendering if the field is in the hidden list
+        if item_key in hidden:
+            return
+
         field_type = type(value)
         label = snake_to_title(item_key)  # Convert item_key to Title Case
 
-        if item_key not in st.session_state.get("model_key", {}).keys():
-            # Special case for 'api_key' to render as a password field
-            if any(
-                keyword in item_key.lower() or item_key.lower() in keyword
-                for keyword in ["password", "token", "api_key", "key", "secret"]
-            ):
+        # Special case for masked fields to render as a password field
+        if item_key.lower() in all_masked_keys:
+            st.session_state[model_key][item_key] = st.text_input(
+                label, value=value, type="password", key=item_key
+            )
+
+        elif field_type == int:
+            st.session_state[model_key][item_key] = st.number_input(
+                label, value=value, step=1, key=item_key
+            )
+
+        elif field_type == float:
+            st.session_state[model_key][item_key] = st.number_input(
+                label, value=value, step=0.01, key=item_key
+            )
+
+        elif field_type == bool:
+            st.session_state[model_key][item_key] = st.checkbox(
+                label, value=value, key=item_key
+            )
+
+        elif field_type == list:
+            yaml_str = st.text_area(
+                label + " (YAML format)", value=yaml.dump(value), key=item_key
+            )
+            try:
+                # Update the list with the user-defined YAML
+                loaded_value = yaml.safe_load(yaml_str)
+                if not isinstance(loaded_value, list):
+                    raise ValueError("The provided YAML does not produce a list.")
+                st.session_state[model_key][item_key] = loaded_value
+            except (yaml.YAMLError, ValueError) as e:
+                st.error(f"Error parsing YAML for {item_key}: {e}")
+
+        elif field_type == str:
+            if len(value) > 100:
+                st.session_state[model_key][item_key] = st.text_area(
+                    label, value=value, key=item_key
+                )
+            else:
                 st.session_state[model_key][item_key] = st.text_input(
-                    label, value=value, type="password", key=item_key
-                )
-
-            elif field_type == int:
-                st.session_state[model_key][item_key] = st.number_input(
-                    label, value=value, step=1, key=item_key
-                )
-
-            elif field_type == float:
-                st.session_state[model_key][item_key] = st.number_input(
-                    label, value=value, step=0.01, key=item_key
-                )
-
-            elif field_type == bool:
-                st.session_state[model_key][item_key] = st.checkbox(
                     label, value=value, key=item_key
                 )
 
-            elif field_type == list:
-                yaml_str = st.text_area(
-                    label + " (YAML format)", value=yaml.dump(value), key=item_key
-                )
-                try:
-                    # Update the list with the user-defined YAML
-                    loaded_value = yaml.safe_load(yaml_str)
-                    if not isinstance(loaded_value, list):
-                        raise ValueError("The provided YAML does not produce a list.")
-                    st.session_state[model_key][item_key] = loaded_value
-                except (yaml.YAMLError, ValueError) as e:
-                    st.error(f"Error parsing YAML for {item_key}: {e}")
+        elif field_type == dict:
+            yaml_str = st.text_area(
+                label + " (YAML format)", value=yaml.dump(value), key=item_key
+            )
+            try:
+                # Update the dictionary with the user-defined YAML
+                st.session_state[model_key][item_key] = yaml.safe_load(yaml_str) or {}
+            except yaml.YAMLError as e:
+                st.error(f"Error parsing YAML for {item_key}: {e}")
 
-            elif field_type == str:
-                if len(value) > 100:
-                    st.session_state[model_key][item_key] = st.text_area(
-                        label, value=value, key=item_key
-                    )
-                else:
-                    st.session_state[model_key][item_key] = st.text_input(
-                        label, value=value, key=item_key
-                    )
-
-            elif field_type == dict:
-                yaml_str = st.text_area(
-                    label + " (YAML format)", value=yaml.dump(value), key=item_key
-                )
-                try:
-                    # Update the dictionary with the user-defined YAML
-                    st.session_state[model_key][item_key] = (
-                        yaml.safe_load(yaml_str) or {}
-                    )
-                except yaml.YAMLError as e:
-                    st.error(f"Error parsing YAML for {item_key}: {e}")
-
-            else:
-                st.write(f"Unsupported type for {item_key}: {field_type}")
+        else:
+            st.write(f"Unsupported type for {item_key}: {field_type}")
 
     # Iterate over keys of context except specific keys
     keys_to_iterate = [
