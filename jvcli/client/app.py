@@ -146,6 +146,13 @@ def main() -> None:
             ):
                 st.session_state.actions_data = actions_data
 
+                # Sort actions_data alphabetically by the action's title
+                actions_data.sort(
+                    key=lambda action: action.get("_package", {})
+                    .get("meta", {})
+                    .get("title", "")
+                )
+
                 for action in actions_data:
                     package = action.get("_package", {})
 
