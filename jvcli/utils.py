@@ -96,33 +96,55 @@ def is_version_compatible(
     version: str, specifiers: str, allow_prerelease: bool = True
 ) -> bool:
     """
-    Determines if the provided version satisfies the given specifiers or exact version match,
-    with an option to consider prerelease versions.
-
-    - Converts comma-separated specifiers to space-separated (Node-style).
+    Determines if the provided version satisfies the given specifiers, with strict
+    prerelease checks when `allow_prerelease` is True.
     """
     if not version or not specifiers:
         return False
 
-    # Replace comma(s) and optional surrounding spaces with one space
+    # Normalize specifiers to Node.js format
     specifiers = re.sub(r"\s*,\s*", " ", specifiers.strip())
 
     try:
-        # For nodesemver
-        return nodesemver.satisfies(
+        # Check using nodesemver
+        result = nodesemver.satisfies(
             version, specifiers, include_prerelease=allow_prerelease
         )
     except ImportError:
         try:
-            # For python-semver >=3.0.0
-            # semver>=3.0.0 supports allow_prerelease
-            return semver.satisfies(
+            # Fallback to python-semver
+            result = semver.satisfies(
                 version, specifiers, allow_prerelease=allow_prerelease
             )
         except Exception:
             return False
     except Exception:
         return False
+
+    # Additional scrutiny for prerelease logic
+    if allow_prerelease and result:
+        try:
+            version_info = semver.VersionInfo.parse(version)
+            # Extract base version from specifier (e.g., "^2.0.0-alpha.44" → "2.0.0-alpha.44")
+            base_version_match = re.search(
+                r"[\^~>=<]*(?P<version>\d+\.\d+\.\d+(-[a-zA-Z0-9\.]+)?)", specifiers
+            )
+            if base_version_match:
+                base_version_str = base_version_match.group("version")
+                base_version_info = semver.VersionInfo.parse(base_version_str)
+
+                # Case 1: Specifier is a prerelease
+                if base_version_info.prerelease:
+                    # Reject stable versions or prereleases lower than the base prerelease
+                    if (not version_info.prerelease) or (
+                        version_info < base_version_info
+                    ):
+                        return False
+
+        except (ValueError, TypeError):
+            pass  # Fallback to original result if parsing fails
+
+    return result
 
 
 def validate_dependencies(dependencies: dict, token: Optional[str] = None) -> None:
