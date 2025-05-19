@@ -344,9 +344,11 @@ class TestUtilsFullCoverage:
         mock_api = mocker.patch(
             "jvcli.api.RegistryAPI.download_package", return_value={"file": 1}
         )
-        dependencies = {"actions": {"a": "^1.0.0", "b": ">=2.0.0"}}
+        dependencies = {
+            "actions": {"a": "^1.0.0", "b": ">=2.0.0", "c": "^2.0.0-alpha.44"}
+        }
         validate_dependencies(dependencies)
-        assert mock_api.call_count == 2
+        assert mock_api.call_count == 3
 
     def test_validate_dependencies_actions_missing(self, mocker: MockerFixture) -> None:
         """Test validate_dependencies for missing action."""
