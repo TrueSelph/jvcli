@@ -157,7 +157,9 @@ def validate_dependencies(dependencies: dict, token: Optional[str] = None) -> No
             # Check if the version is in list of supported versions
             def supported(spec: str) -> bool:
                 return any(
-                    is_version_compatible(version, spec)
+                    is_version_compatible(
+                        version, spec, False
+                    )  # ignore prerelase specs for this validation
                     for version in __supported__jivas__versions__
                 )
 
