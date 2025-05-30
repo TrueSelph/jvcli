@@ -40,6 +40,7 @@ class TestCli:
         """Test that CLI displays usage information when no command is provided."""
         runner = click.testing.CliRunner()
         result = runner.invoke(jvcli)
-        assert result.exit_code == 0
+
+        assert result.exit_code == 2
         assert "Usage:" in result.output
         assert "Commands:" in result.output

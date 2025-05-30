@@ -21,9 +21,9 @@ def transcribe_audio(token: str, agent_id: str, file: bytes) -> dict:
 
     data = {
         "args": "{}",
-        "module_root": "actions.jivas.deepgram_stt_action",
+        "module_root": "jivas.agent.action",
         "agent_id": agent_id,
-        "walker": "transcribe_audio",
+        "walker": "invoke_stt_action",
     }
 
     headers = {"Authorization": f"Bearer {token}"}
@@ -50,10 +50,10 @@ def render(router: StreamlitRouter) -> None:
     audio_value = st.audio_input("Record a voice message")
     if audio_value:
         selected_agent = st.session_state.get("selected_agent")
-        result = transcribe_audio(ctx["token"], selected_agent, audio_value)
+        result = transcribe_audio(ctx["token"], selected_agent["id"], audio_value)
         if result.get("success", False):
             send_message(
-                result["transcript"], url, ctx["token"], selected_agent, tts_on
+                result["transcript"], url, ctx["token"], selected_agent["id"], tts_on
             )
 
     if selected_agent := st.query_params.get("agent"):

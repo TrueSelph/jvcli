@@ -36,9 +36,9 @@ class TestClientChatPage:
             headers={"Authorization": f"Bearer {token}"},
             data={
                 "args": "{}",
-                "module_root": "actions.jivas.deepgram_stt_action",
+                "module_root": "jivas.agent.action",
                 "agent_id": agent_id,
-                "walker": "transcribe_audio",
+                "walker": "invoke_stt_action",
             },
             files={"attachments": ("audio.wav", test_file, "audio/wav")},
         )
@@ -62,7 +62,7 @@ class TestClientChatPage:
         mocker.patch("streamlit.header")
         mocker.patch("streamlit.toggle", return_value=True)
         mocker.patch("streamlit.audio_input", return_value=b"audio_data")
-        mocker.patch("streamlit.session_state", {"selected_agent": "agent_1"})
+        mocker.patch("streamlit.session_state", {"selected_agent": {"id": "agent_1"}})
         mock_transcribe_audio = mocker.patch(
             "jvcli.client.pages.chat_page.transcribe_audio",
             return_value={"success": True, "transcript": "Hello"},

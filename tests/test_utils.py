@@ -421,9 +421,9 @@ class TestUtilsFullCoverage:
                 return mock_dotenv
             return real_import(name, *args, **kwargs)
 
-        with mocker.patch("builtins.__import__", side_effect=mock_import):
-            load_env_if_present()
-            mock_dotenv.load_dotenv.assert_called_once_with(env_path)
+        mocker.patch("builtins.__import__", side_effect=mock_import)
+        load_env_if_present()
+        mock_dotenv.load_dotenv.assert_called_once_with(env_path)
 
         # Test import error case
         mock_echo.reset_mock()
@@ -433,9 +433,9 @@ class TestUtilsFullCoverage:
                 raise ImportError("No module named 'dotenv'")
             return real_import(name, *args, **kwargs)
 
-        with mocker.patch("builtins.__import__", side_effect=mock_import_error):
-            load_env_if_present()
-            mock_echo.assert_called_once()
+        mocker.patch("builtins.__import__", side_effect=mock_import_error)
+        load_env_if_present()
+        mock_echo.assert_called_once()
 
     def test_is_server_running(self, mocker: MockerFixture) -> None:
         """Test is_server_running function with different server responses."""
