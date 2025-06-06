@@ -21,7 +21,7 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install --upgrade pip
-          pip install -e .[dev]
+          pip install -e .[dev] --no-cache-dir
 
       - name: Run Pytest with Coverage
         run: |
