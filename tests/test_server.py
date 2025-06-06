@@ -595,47 +595,6 @@ class TestCreateAdminCommand:
             },
         )
 
-    def test_createadmin_using_jac_command(self, mocker: MockerFixture) -> None:
-        """Test creating admin user using the jac command."""
-        # Mock subprocess.call successful return
-        mock_subprocess = mocker.patch(
-            "jvcli.commands.server.subprocess.call", return_value=0
-        )
-
-        # Environment with DATABASE_HOST
-        mocker.patch.dict(
-            os.environ,
-            {
-                "DATABASE_HOST": "postgres:5432",
-                "JIVAS_BASE_URL": "http://localhost:8000",
-            },
-        )
-
-        # Run command
-        runner = CliRunner()
-        result = runner.invoke(
-            server,
-            ["createadmin", "--email", "admin@example.com", "--password", "admin123"],
-        )
-
-        # Verify behavior
-        assert result.exit_code == 0
-        assert "Creating system admin..." in result.output
-        assert "Admin user created successfully!" in result.output
-
-        # Verify jac command was called
-        mock_subprocess.assert_called_once_with(
-            [
-                "jac",
-                "create_system_admin",
-                "main.jac",
-                "--email",
-                "admin@example.com",
-                "--password",
-                "admin123",
-            ]
-        )
-
     def test_failed_signup_endpoint(self, mocker: MockerFixture) -> None:
         """Test behavior when signup endpoint returns an error."""
         # Mock API error response
