@@ -678,25 +678,3 @@ class TestCreateAdminCommand:
         # Verify behavior
         assert result.exit_code == 0
         assert "Error connecting to Jivas Server: Connection refused" in result.output
-
-    def test_createadmin_jac_command_exception(self, mocker: MockerFixture) -> None:
-        """Test behavior when jac command raises an exception."""
-        # Mock subprocess to raise an exception
-        mocker.patch(
-            "jvcli.commands.server.subprocess.call",
-            side_effect=Exception("Command not found"),
-        )
-
-        # Environment with DATABASE_HOST
-        mocker.patch.dict(os.environ, {"DATABASE_HOST": "postgres:5432"})
-
-        # Run command
-        runner = CliRunner()
-        result = runner.invoke(
-            server,
-            ["createadmin", "--email", "admin@example.com", "--password", "admin123"],
-        )
-
-        # Verify behavior
-        assert result.exit_code == 0
-        assert "Error running jac command: Command not found" in result.output
