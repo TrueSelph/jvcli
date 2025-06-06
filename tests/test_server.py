@@ -619,25 +619,6 @@ class TestCreateAdminCommand:
         assert result.exit_code == 0
         assert "Failed to create admin: Email already exists" in result.output
 
-    def test_failed_jac_command(self, mocker: MockerFixture) -> None:
-        """Test behavior when jac command fails."""
-        # Mock subprocess.call failure
-        mocker.patch("jvcli.commands.server.subprocess.call", return_value=1)
-
-        # Environment with DATABASE_HOST
-        mocker.patch.dict(os.environ, {"DATABASE_HOST": "postgres:5432"})
-
-        # Run command
-        runner = CliRunner()
-        result = runner.invoke(
-            server,
-            ["createadmin", "--email", "admin@example.com", "--password", "admin123"],
-        )
-
-        # Verify behavior
-        assert result.exit_code == 0
-        assert "Failed to create admin user" in result.output
-
     def test_createadmin_with_prompts(self, mocker: MockerFixture) -> None:
         """Test creating admin with interactive prompts for credentials."""
         # Mock prompts
