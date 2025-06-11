@@ -13,7 +13,6 @@ def app_header(agent_id: str, action_id: str, info: dict) -> tuple:
 
     # Create a dynamic key for the session state using the action_id
     model_key = f"model_{agent_id}_{action_id}"
-    action = info.get("label", "")
 
     # Initialize session state if not already
     if model_key not in st.session_state:
@@ -21,6 +20,9 @@ def app_header(agent_id: str, action_id: str, info: dict) -> tuple:
         st.session_state[model_key] = call_get_action(
             agent_id=agent_id, action_id=action_id
         )
+
+    # grab action label
+    action = st.session_state[model_key].get("label", "")
 
     # add standard action app header
     st.header(
