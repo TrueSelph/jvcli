@@ -36,7 +36,7 @@ class TestClientChatPage:
             headers={"Authorization": f"Bearer {token}"},
             data={
                 "args": "{}",
-                "module_root": "actions.jivas.deepgram_stt_action",
+                "action": "DeepgramSTTAction",
                 "agent_id": agent_id,
                 "walker": "transcribe_audio",
             },

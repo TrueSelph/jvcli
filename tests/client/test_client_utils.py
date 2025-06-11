@@ -518,16 +518,14 @@ def dummy_function():
 
         # Test parameters
         agent_id = "test_agent"
-        module_root = "test_module"
+        action = "test_module"
         walker = "test_walker"
         args = {"arg1": "value1"}
         files = [("file1.txt", b"content", "text/plain")]
         headers = {"Authorization": "Bearer test_token"}
 
         # Call function
-        result = call_action_walker_exec(
-            agent_id, module_root, walker, args, files, headers
-        )
+        result = call_action_walker_exec(agent_id, action, walker, args, files, headers)
 
         # Verify call_api was called with correct parameters
         mock_call_api.assert_called_once_with(
@@ -535,7 +533,7 @@ def dummy_function():
             headers=headers,
             data={
                 "agent_id": agent_id,
-                "module_root": module_root,
+                "action": action,
                 "walker": walker,
                 "args": json.dumps(args),
             },
@@ -563,16 +561,14 @@ def dummy_function():
 
         # Test parameters
         agent_id = "test_agent"
-        module_root = "test_module"
+        action = "test_module"
         walker = "test_walker"
         args = {"arg1": "value1"}
         files = [("file1.txt", b"content", "text/plain")]
         headers = {"Authorization": "Bearer test_token"}
 
         # Call function
-        result = call_action_walker_exec(
-            agent_id, module_root, walker, args, files, headers
-        )
+        result = call_action_walker_exec(agent_id, action, walker, args, files, headers)
 
         # Verify call_api was called with correct parameters
         mock_call_api.assert_called_once_with(
@@ -580,7 +576,7 @@ def dummy_function():
             headers=headers,
             data={
                 "agent_id": agent_id,
-                "module_root": module_root,
+                "action": action,
                 "walker": walker,
                 "args": json.dumps(args),
             },

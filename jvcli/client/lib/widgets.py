@@ -13,7 +13,7 @@ def app_header(agent_id: str, action_id: str, info: dict) -> tuple:
 
     # Create a dynamic key for the session state using the action_id
     model_key = f"model_{agent_id}_{action_id}"
-    module_root = info.get("config", {}).get("module_root")
+    action = info.get("label", "")
 
     # Initialize session state if not already
     if model_key not in st.session_state:
@@ -55,7 +55,7 @@ def app_header(agent_id: str, action_id: str, info: dict) -> tuple:
         update_action()
         st.rerun()
 
-    return model_key, module_root
+    return model_key, action
 
 
 def snake_to_title(snake_str: str) -> str:

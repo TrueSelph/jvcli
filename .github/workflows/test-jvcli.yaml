@@ -22,7 +22,7 @@ jobs:
         python-version: 3.12
 
     - name: Install dependencies
-      run: pip install .[dev] --no-cache-dir
+      run: pip install .[dev]
 
     - name: Run tests
       run: pytest

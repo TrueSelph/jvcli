@@ -94,7 +94,7 @@ def call_api(
 
 def call_action_walker_exec(
     agent_id: str,
-    module_root: str,
+    action: str,
     walker: str,
     args: Optional[Dict] = None,
     files: Optional[List] = None,
@@ -105,7 +105,7 @@ def call_action_walker_exec(
     endpoint = f"{JIVAS_BASE_URL}/action/walker"
 
     # Create form data
-    data = {"agent_id": agent_id, "module_root": module_root, "walker": walker}
+    data = {"agent_id": agent_id, "action": action, "walker": walker}
 
     if args:
         data["args"] = json.dumps(args)
