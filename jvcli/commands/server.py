@@ -101,23 +101,49 @@ def createadmin(email: Optional[str] = None, password: Optional[str] = None) -> 
     if password is None:
         password = click.prompt("Password", hide_input=True)
 
-    signup_url = (
-        f"{os.environ.get('JIVAS_BASE_URL', 'http://localhost:8000')}/user/register"
-    )
+    database_host = os.environ.get("DATABASE_HOST")
 
-    click.echo("Creating system admin...")
-
-    try:
-        response = requests.post(
-            signup_url, json={"email": email, "password": password}
+    if not database_host:
+        click.echo("Database host is not set. Using signup endpoint...")
+        signup_url = (
+            f"{os.environ.get('JIVAS_BASE_URL', 'http://localhost:8000')}/user/register"
         )
-        if response.status_code in (200, 201):
-            click.secho("Admin user created successfully!", fg="green", bold=True)
-            return response.json()
-        else:
-            click.secho(f"Failed to create admin: {response.text}", fg="red", bold=True)
-    except Exception as e:
-        click.secho(f"Error connecting to Jivas Server: {str(e)}", fg="red", bold=True)
+
+        try:
+            response = requests.post(
+                signup_url, json={"email": email, "password": password}
+            )
+            if response.status_code in (200, 201):
+                click.secho("Admin user created successfully!", fg="green", bold=True)
+                return response.json()
+            else:
+                click.secho(
+                    f"Failed to create admin: {response.text}", fg="red", bold=True
+                )
+        except Exception as e:
+            click.secho(
+                f"Error connecting to Jivas Server: {str(e)}", fg="red", bold=True
+            )
+    else:
+        click.echo("Creating system admin...")
+        try:
+            result = subprocess.call(
+                [
+                    "jac",
+                    "create_system_admin",
+                    "main.jac",
+                    "--email",
+                    email,
+                    "--password",
+                    password,
+                ]
+            )
+            if result == 0:
+                click.secho("Admin user created successfully!", fg="green", bold=True)
+            else:
+                click.secho("Failed to create admin user", fg="red", bold=True)
+        except Exception as e:
+            click.secho(f"Error running jac command: {str(e)}", fg="red", bold=True)
 
 
 @server.command()

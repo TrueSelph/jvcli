@@ -21,7 +21,7 @@ def transcribe_audio(token: str, agent_id: str, file: bytes) -> dict:
 
     data = {
         "args": "{}",
-        "module_root": "actions.jivas.deepgram_stt_action",
+        "action": "DeepgramSTTAction",
         "agent_id": agent_id,
         "walker": "transcribe_audio",
     }

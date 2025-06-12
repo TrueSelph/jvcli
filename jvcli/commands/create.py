@@ -244,7 +244,7 @@ def render(router: StreamlitRouter, agent_id: str, action_id: str, info: dict) -
     \"\"\"
 
     # Add app header controls
-    (model_key, module_root) = app_header(agent_id, action_id, info)
+    (model_key, action) = app_header(agent_id, action_id, info)
 
     # Add app main controls
     app_controls(agent_id, action_id)

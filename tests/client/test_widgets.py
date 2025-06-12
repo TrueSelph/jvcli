@@ -40,10 +40,10 @@ class TestClientWidgets:
         # Test inputs
         agent_id = "test_agent"
         action_id = "test_action"
-        info = {"config": {"module_root": "test_root"}}
+        info = {"config": {"action": "test_root"}}
 
         # Call function
-        model_key, module_root = app_header(agent_id, action_id, info)
+        model_key, action = app_header(agent_id, action_id, info)
 
         # Verify call_get_action was called with correct params
         mock_get_action.assert_called_once_with(agent_id=agent_id, action_id=action_id)
