@@ -44,19 +44,18 @@ def create() -> None:
     help="Description of the action.",
 )
 @click.option(
-    "--type",
-    "--type",
-    default="action",
-    type=click.Choice(TYPE_SUFFIX_MAP.keys(), case_sensitive=False),
-    show_default=True,
-    help="Type of the action.",
-)
-@click.option(
     "--singleton",
     default=True,
     type=bool,
     show_default=True,
     help="Indicate if the action is singleton.",
+)
+@click.option(
+    "--type",
+    default="action",
+    type=click.Choice(TYPE_SUFFIX_MAP.keys(), case_sensitive=False),
+    show_default=True,
+    help="Type of the action.",
 )
 @click.option(
     "--path",
@@ -68,19 +67,6 @@ def create() -> None:
     "--namespace",
     default=None,
     help="Namespace for the action. Defaults to the username in the token.",
-)
-@click.option(
-    "--singleton",
-    default=True,
-    type=bool,
-    show_default=True,
-    help="Indicate if the action is singleton.",
-)
-@click.option(
-    "--path",
-    default="./actions",
-    show_default=True,
-    help="Directory to create the action folder in.",
 )
 def create_action(
     name: str,
