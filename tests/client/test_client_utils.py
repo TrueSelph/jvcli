@@ -533,7 +533,7 @@ def dummy_function():
             headers=headers,
             data={
                 "agent_id": agent_id,
-                "action": action,
+                "module_root": action,
                 "walker": walker,
                 "args": json.dumps(args),
             },
@@ -576,7 +576,7 @@ def dummy_function():
             headers=headers,
             data={
                 "agent_id": agent_id,
-                "action": action,
+                "module_root": action,
                 "walker": walker,
                 "args": json.dumps(args),
             },
@@ -1009,6 +1009,7 @@ def dummy_function():
             json_data=json_data,
             files=files,
             data=data,
+            timeout=10,
         )
 
         # Verify requests.request was called with correct parameters
@@ -1022,6 +1023,7 @@ def dummy_function():
             json=json_data,
             files=files,
             data=data,
+            timeout=10,
         )
 
         # Verify result
