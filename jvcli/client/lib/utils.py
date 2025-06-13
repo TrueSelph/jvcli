@@ -57,6 +57,7 @@ def call_api(
     json_data: Optional[Dict] = None,
     files: Optional[List] = None,
     data: Optional[Dict] = None,
+    timeout: int = 10,
 ) -> Optional[requests.Response]:
     """Generic function to call an API endpoint."""
 
@@ -77,6 +78,7 @@ def call_api(
                 json=json_data,
                 files=files,
                 data=data,
+                timeout=timeout,
             )
 
             if response.status_code == 401:
@@ -94,7 +96,7 @@ def call_api(
 
 def call_action_walker_exec(
     agent_id: str,
-    action: str,
+    module_root: str,
     walker: str,
     args: Optional[Dict] = None,
     files: Optional[List] = None,
@@ -105,7 +107,7 @@ def call_action_walker_exec(
     endpoint = f"{JIVAS_BASE_URL}/action/walker"
 
     # Create form data
-    data = {"agent_id": agent_id, "action": action, "walker": walker}
+    data = {"agent_id": agent_id, "module_root": module_root, "walker": walker}
 
     if args:
         data["args"] = json.dumps(args)
