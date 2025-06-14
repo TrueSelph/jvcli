@@ -147,7 +147,6 @@ def app_controls(
                 )
 
         elif field_type == dict:
-            st.write(value)
             yaml_str = st.text_area(
                 label + " (YAML format)",
                 value=yaml.dump(value, sort_keys=False),
