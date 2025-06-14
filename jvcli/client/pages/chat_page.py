@@ -21,9 +21,9 @@ def transcribe_audio(token: str, agent_id: str, file: bytes) -> dict:
 
     data = {
         "args": "{}",
-        "action": "DeepgramSTTAction",
+        "module_root": "jivas.agent.action",
         "agent_id": agent_id,
-        "walker": "transcribe_audio",
+        "walker": "invoke_stt_action",
     }
 
     headers = {"Authorization": f"Bearer {token}"}
@@ -35,7 +35,6 @@ def transcribe_audio(token: str, agent_id: str, file: bytes) -> dict:
 
     # Parse JSON response
     result = response.json()
-
     return result
 
 
@@ -47,29 +46,37 @@ def render(router: StreamlitRouter) -> None:
     st.header("Chat", divider=True)
     tts_on = st.toggle("TTS")
 
+    message = ""
+    # Handle audio input first
     audio_value = st.audio_input("Record a voice message")
-    if audio_value:
-        selected_agent = st.session_state.get("selected_agent")
-        result = transcribe_audio(ctx["token"], selected_agent, audio_value)
-        if result.get("success", False):
-            send_message(
-                result["transcript"], url, ctx["token"], selected_agent, tts_on
-            )
+    # Get selected agent from query params
+    selected_agent = st.query_params.get("agent")
 
-    if selected_agent := st.query_params.get("agent"):
+    if selected_agent:
         chat_messages = st.session_state.messages.get(selected_agent, [])
 
         # Display chat messages from history on app rerun
-        for message in chat_messages:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
-                if payload := message.get("payload"):
+        for item in chat_messages:
+            role = item.get("role", "user")
+            content = item.get("content", "")
+            with st.chat_message(role):
+                st.markdown(content)
+                if payload := item.get("payload"):
                     with st.expander("...", False):
                         st.json(payload)
 
-        # Accept user input
-        if prompt := st.chat_input("Type your message here"):
-            send_message(prompt, url, ctx["token"], selected_agent, tts_on)
+    # Process audio input if available
+    if audio_value and selected_agent:
+        result = transcribe_audio(ctx["token"], selected_agent, audio_value)
+        if result and result.get("success", False):
+            message = result["transcript"]
+
+    # Otherwise handle text input
+    if input := st.chat_input("Type your message here"):
+        message = input
+
+    if message:
+        send_message(message, url, ctx["token"], selected_agent, tts_on)
 
 
 def send_message(
