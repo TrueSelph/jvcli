@@ -62,7 +62,11 @@ class TestClientChatPage:
         mocker.patch("streamlit.header")
         mocker.patch("streamlit.toggle", return_value=True)
         mocker.patch("streamlit.audio_input", return_value=b"audio_data")
-        mocker.patch("streamlit.session_state", {"selected_agent": {"id": "agent_1"}})
+        mock_session_state = mocker.MagicMock()
+        mock_session_state.selected_agent = {"id": "agent_1"}
+        mock_session_state.messages = {"agent_1": []}
+        mocker.patch("streamlit.session_state", mock_session_state)
+        mocker.patch("streamlit.query_params", {"agent": "agent_1"})
         mock_transcribe_audio = mocker.patch(
             "jvcli.client.pages.chat_page.transcribe_audio",
             return_value={"success": True, "transcript": "Hello"},
