@@ -123,7 +123,9 @@ def app_controls(
 
         elif field_type == list:
             yaml_str = st.text_area(
-                label + " (YAML format)", value=yaml.dump(value), key=item_key
+                label + " (YAML format)",
+                value=yaml.dump(value, sort_keys=False),
+                key=item_key,
             )
             try:
                 # Update the list with the user-defined YAML
@@ -146,7 +148,9 @@ def app_controls(
 
         elif field_type == dict:
             yaml_str = st.text_area(
-                label + " (YAML format)", value=yaml.dump(value), key=item_key
+                label + " (YAML format)",
+                value=yaml.dump(value, sort_keys=False),
+                key=item_key,
             )
             try:
                 # Update the dictionary with the user-defined YAML
