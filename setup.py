@@ -40,7 +40,6 @@ setup(
         "requests>=2.32.3",
         "packaging>=24.2",
         "pyaml>=25.1.0",
-        "jac-cloud==0.1.20",
         "streamlit>=1.42.0",
         "streamlit-elements>=0.1.0",
         "streamlit-router>=0.1.8",
