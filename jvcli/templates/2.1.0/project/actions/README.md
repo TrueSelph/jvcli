@@ -20,7 +20,7 @@ To create a custom action using `jvcli`, follow these steps:
 
 2. **Options**: You can customize the creation process with various options:
     - `--version`: Specify the version of the action. Default is `0.0.1`.
-    - `--jivas_version`: Specify the version of Jivas. Default is `2.0.0`.
+    - `--jivas_version`: Specify the version of Jivas. Default is `2.1.0`.
     - `--type`: Define the type of action (`action`, `interact_action`, or `vector_store_action`). Default is `action`.
     - `--singleton`: Indicate if the action is singleton. Default is `True`.
     - `--path`: Directory to create the action folder in. Default is `./actions`.

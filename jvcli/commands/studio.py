@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
-from jac_cloud.core.architype import NodeAnchor
+from jac_cloud.core.archetype import NodeAnchor
 from jac_cloud.jaseci.security import decrypt
 from uvicorn import run
 
