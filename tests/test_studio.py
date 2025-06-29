@@ -68,7 +68,7 @@ class TestStudio:
             {
                 "_id": ObjectId("507f191e810c19729de860ea"),
                 "root": ObjectId("507f191e810c19729de860eb"),
-                "architype": "TestNode",
+                "archetype": "TestNode",
                 "name": "Node1",
             }
         ]
@@ -79,7 +79,7 @@ class TestStudio:
                 "name": "Edge1",
                 "source": "Node1",
                 "target": "Node2",
-                "architype": "TestEdge",
+                "archetype": "TestEdge",
             }
         ]
 
@@ -177,7 +177,7 @@ class TestStudio:
                 "source": "507f191e810c19729de860ea",  # pragma: allowlist secret
                 "target": "507f191e810c19729de860ed",  # pragma: allowlist secret
                 "name": "Edge1",
-                "architype": "TestEdge",
+                "archetype": "TestEdge",
             }
         ]
 
@@ -185,7 +185,7 @@ class TestStudio:
             {
                 "_id": ObjectId("507f191e810c19729de860ed"),
                 "name": "Node2",
-                "architype": "TestNode",
+                "archetype": "TestNode",
             }
         ]
 
@@ -293,7 +293,7 @@ class TestStudio:
             {
                 "_id": ObjectId("507f191e810c19729de860ea"),
                 "root": ObjectId("507f191e810c19729de860eb"),
-                "architype": "TestNode",
+                "archetype": "TestNode",
                 "name": "Node1",
             }
         ]
@@ -304,7 +304,7 @@ class TestStudio:
                 "name": "Edge1",
                 "source": "Node1",
                 "target": "Node2",
-                "architype": "TestEdge",
+                "archetype": "TestEdge",
             }
         ]
 
@@ -423,7 +423,7 @@ class TestStudio:
                 "source": "507f191e810c19729de860ea",  # pragma: allowlist secret
                 "target": "507f191e810c19729de860ed",  # pragma: allowlist secret
                 "name": "Edge1",
-                "architype": "TestEdge",
+                "archetype": "TestEdge",
             }
         ]
 
@@ -431,7 +431,7 @@ class TestStudio:
             {
                 "_id": ObjectId("507f191e810c19729de860ed"),
                 "name": "Node2",
-                "architype": "TestNode",
+                "archetype": "TestNode",
             }
         ]
 

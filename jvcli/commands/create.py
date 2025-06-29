@@ -93,7 +93,7 @@ def create_action(
     full_name = f"{namespace}/{name}"
 
     # Generate class name (CamelCase)
-    architype = "".join(word.capitalize() for word in name.split("_"))
+    archetype = "".join(word.capitalize() for word in name.split("_"))
 
     # Validate the Jivas version
     if str(jivas_version) not in __supported__jivas__versions__:
@@ -126,7 +126,7 @@ def create_action(
     data = {
         "name": full_name,  # Include namespace in the package name
         "author": author,
-        "architype": architype,
+        "archetype": archetype,
         "version": version,
         "title": title,
         "description": description,
@@ -200,7 +200,7 @@ def create_action(
 # Define your custom action code here
 {import_statement}
 
-node {architype} :{node_class}: {{
+node {archetype} :{node_class}: {{
     # Declare your has variables to be persisted here
     # e.g has var_a : str = "string";
 

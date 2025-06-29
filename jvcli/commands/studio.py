@@ -46,7 +46,7 @@ def get_nodes_and_edges(
                 "name": edge["name"],
                 "source": edge["source"],
                 "target": edge["target"],
-                "data": edge["architype"],
+                "data": edge["archetype"],
             }
         )
 
@@ -57,7 +57,7 @@ def get_nodes_and_edges(
             nodes.append(
                 {
                     "id": node["_id"],
-                    "data": node["architype"],
+                    "data": node["archetype"],
                     "name": node["name"],
                 }
             )
@@ -95,7 +95,7 @@ class EndpointFactory:
             nodes = [
                 {
                     "id": node["_id"],
-                    "data": node["architype"],
+                    "data": node["archetype"],
                     "name": node["name"],
                 }
                 for node in node_collection.find({"root": ObjectId(root)})
@@ -107,7 +107,7 @@ class EndpointFactory:
                     "name": edge["name"],
                     "source": edge["source"],
                     "target": edge["target"],
-                    "data": edge["architype"],
+                    "data": edge["archetype"],
                 }
                 for edge in edge_collection.find({"root": ObjectId(root)})
             ]
