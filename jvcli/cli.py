@@ -4,7 +4,6 @@ import click
 
 from jvcli import __version__
 from jvcli.commands.auth import login, logout, signup
-from jvcli.commands.clean import clean
 from jvcli.commands.client import client
 from jvcli.commands.create import create
 from jvcli.commands.download import download
@@ -32,7 +31,6 @@ jvcli.add_command(info)
 jvcli.add_command(studio)
 jvcli.add_command(client)
 jvcli.add_command(startproject)
-jvcli.add_command(clean)
 jvcli.add_command(server)
 
 # Register standalone commands

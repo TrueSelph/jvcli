@@ -10,7 +10,6 @@ import click
 import requests
 
 from jvcli.auth import login_jivas
-from jvcli.commands.clean import clean
 from jvcli.utils import is_server_running, load_env_if_present
 
 load_env_if_present()
@@ -166,11 +165,6 @@ def initagents() -> None:
         click.secho("Failed to login to Jivas.", fg="red")
         sys.exit(1)
     click.secho("Logged in to Jivas successfully.", fg="green")
-
-    # Run jvcli clean command
-    click.secho("Cleaning Jac files before initializing agents...", fg="blue")
-    ctx = click.Context(clean, info_name="clean")
-    clean.invoke(ctx)
 
     # Initialize agents
     try:

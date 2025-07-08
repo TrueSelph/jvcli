@@ -86,17 +86,6 @@ This command creates a directory structure with:
 - Main JAC file for your JIVAS application
 - Configuration files and shell scripts for easy management
 
-#### `jvcli clean`
-
-Clean the Jac files in the current directory and subdirectories by removing compiled artifacts and temporary files.
-
-```sh
-# Clean the current directory
-jvcli clean
-```
-
-This command executes `jac clean` under the hood and ensures your project is in a clean state before rebuilding or deploying.
-
 ### Create Commands
 
 Create commands help you generate new resources like actions, agents, and namespaces with the proper structure and configuration.
@@ -457,8 +446,7 @@ jvcli server initagents
 This command:
 1. Checks if the server is running
 2. Logs in to the server
-3. Cleans JAC files before reinitializing
-4. Sends a request to the server to reinitialize all agents
+3. Sends a request to the server to reinitialize all agents
 
 #### `jvcli server importagent`
 
