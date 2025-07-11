@@ -150,98 +150,47 @@ def create_action(
     with open(lib_path, "w") as file:
         file.write(f"include:jac {name};\n")
 
-    # Create action-specific .jac file
+    # Create action-specific .jac file from template (new path)
     action_jac_path = os.path.join(action_dir, f"{name}.jac")
+    action_jac_template_path = os.path.join(TEMPLATES_DIR, "2.1.0", "project", "actions", "action.jac")
+    if not os.path.exists(action_jac_template_path):
+        click.secho(
+            f"action.jac template for version {jivas_version} not found in {TEMPLATES_DIR}/project.",
+            fg="red",
+        )
+        return
+    with open(action_jac_template_path, "r") as file:
+        action_jac_template = file.read()
+    node_class = {
+        "action": "Action",
+        "interact_action": "InteractAction",
+        "vector_store_action": "VectorStoreAction",
+    }[type]
+    action_jac_content = action_jac_template.replace("{{archetype}}", archetype)
+    action_jac_content = action_jac_content.replace("{{node_class}}", node_class)
+    action_jac_content = action_jac_content.replace("{{name}}", name)
+    action_jac_content = action_jac_content.replace("{{type}}", type)
     with open(action_jac_path, "w") as file:
-        node_class = {
-            "action": "Action",
-            "interact_action": "InteractAction",
-            "vector_store_action": "VectorStoreAction",
-        }[type]
+        file.write(action_jac_content)
 
-        import_statement = f"import:jac from agent.action.{type} {{ {node_class} }}"
-
-        abilities = """
-    #* (Abilities - Uncomment and implement as needed)
-    can on_register {
-        # override to execute operations upon registration of action
-    }
-
-    can post_register {
-        # override to execute any setup code when all actions are in place
-    }
-
-    can on_enable {
-        # override to execute operations upon enabling of action
-    }
-
-    can on_disable {
-        # override to execute operations upon disabling of action
-    }
-
-    can on_deregister {
-        # override to execute operations upon deregistration of action
-    }
-
-    can touch(visitor: interact_graph_walker) -> bool {
-        # override to authorize, redirect or deny the interact walker from running execute
-    }
-
-    can execute(visitor: interact_graph_walker) -> dict {
-        # override to implement action execution
-    }
-
-    can pulse() {
-        # override to implement pulse operation
-    }
-    *#
-    """
-        node_content = f"""
-# Define your custom action code here
-{import_statement}
-
-node {archetype} :{node_class}: {{
-    # Declare your has variables to be persisted here
-    # e.g has var_a : str = "string";
-
-{abilities}
-}}
-        """
-        file.write(node_content.strip())
-
-    # Create the 'app' folder and default 'app.py'
+    # Create the 'app' folder and default 'app.py' from template (new path)
     app_dir = os.path.join(action_dir, "app")
     os.makedirs(app_dir, exist_ok=True)
     app_file_path = os.path.join(app_dir, "app.py")
+    app_template_path = os.path.join(TEMPLATES_DIR, "2.1.0", "project", "app", "app.py")
+    if not os.path.exists(app_template_path):
+        click.secho(
+            f"app.py template for version {jivas_version} not found in {TEMPLATES_DIR}/project.",
+            fg="red",
+        )
+        return
+    with open(app_template_path, "r") as file:
+        app_code = file.read()
+    app_code = app_code.replace("{{title}}", title)
     with open(app_file_path, "w") as app_file:
-        app_code = """
-\"\"\" This module renders the streamlit app for the {title}. \"\"\"
-
-from jvcli.client.lib.widgets import app_controls, app_header, app_update_action
-
-from streamlit_router import StreamlitRouter
-
-def render(router: StreamlitRouter, agent_id: str, action_id: str, info: dict) -> None:
-    \"\"\"Render the Streamlit app for the {title}.
-    :param router: The StreamlitRouter instance
-    :param agent_id: The agent ID
-    :param action_id: The action ID
-    :param info: The action info dict
-    \"\"\"
-
-    # Add app header controls
-    (model_key, action) = app_header(agent_id, action_id, info)
-
-    # Add app main controls
-    app_controls(agent_id, action_id)
-
-    # Add update button to apply changes
-    app_update_action(agent_id, action_id)
-        """
-        app_code = app_code.replace("{title}", title)
         app_file.write(app_code)
 
-        create_docs(action_dir, title, version, "action", description)
+    create_docs(action_dir, title, version, "action", description)
 
     click.secho(
         f"Action '{name}' created successfully in {action_dir}!", fg="green", bold=True
