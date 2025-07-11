@@ -209,6 +209,11 @@ node {archetype} :{node_class}: {{
         """
         file.write(node_content.strip())
 
+    # Create action-specific .test.jac file
+    action_test_jac_path = os.path.join(action_dir, f"{name}.test.jac")
+    with open(action_test_jac_path, "w") as f:
+        f.write("with entry {}")
+
     # Create the 'app' folder and default 'app.py'
     app_dir = os.path.join(action_dir, "app")
     os.makedirs(app_dir, exist_ok=True)
