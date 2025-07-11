@@ -2,6 +2,7 @@
 
 from click.testing import CliRunner
 from pytest_mock import MockerFixture
+
 from jvcli.commands.graph import launch
 
 

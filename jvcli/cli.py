@@ -8,11 +8,11 @@ from jvcli.commands.clean import clean
 from jvcli.commands.client import client
 from jvcli.commands.create import create
 from jvcli.commands.download import download
+from jvcli.commands.graph import graph
 from jvcli.commands.info import info
 from jvcli.commands.publish import publish
 from jvcli.commands.server import server
 from jvcli.commands.startproject import startproject
-from jvcli.commands.graph import graph
 from jvcli.commands.update import update
 
 
