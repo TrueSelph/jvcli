@@ -10,7 +10,6 @@ from jvcli.commands.create import (
     create_action,
     create_agent,
     create_namespace,
-    load_template,
 )
 from jvcli.utils import TEMPLATES_DIR
 
@@ -386,9 +385,3 @@ class TestCreateCommand:
         mock_click.assert_called_with(
             "Template info.yaml not found in TEMPLATES_DIR.", fg="red"
         )
-
-
-def test_template_files_accessed() -> None:
-    """Test that the template files are accessed correctly."""
-    load_template("jvcli/templates/2.1.0/project/actions/action.tpl")
-    load_template("jvcli/templates/2.1.0/project/app/app.tpl")

@@ -153,7 +153,7 @@ def create_action(
     # Create action-specific .jac file from template (new path)
     action_jac_path = os.path.join(action_dir, f"{name}.jac")
     action_jac_template_path = os.path.join(
-        TEMPLATES_DIR, "2.1.0", "project", "actions", "action.tpl"
+        TEMPLATES_DIR, "2.1.0", "project", "actions", "action.tmpl"
     )
     if not os.path.exists(action_jac_template_path):
         click.secho(
@@ -185,7 +185,7 @@ def create_action(
     os.makedirs(app_dir, exist_ok=True)
     app_file_path = os.path.join(app_dir, "app.py")
     app_template_path = os.path.join(
-        TEMPLATES_DIR, "2.1.0", "project", "app", "app.tpl"
+        TEMPLATES_DIR, "2.1.0", "project", "app", "app.tmpl"
     )
     if not os.path.exists(app_template_path):
         click.secho(
@@ -394,9 +394,3 @@ def create_docs(
         target_changelog = os.path.join(path, "CHANGELOG.md")
         with open(target_changelog, "w") as file:
             file.write(changelog_content)
-
-
-def load_template(path: str) -> str:
-    """Load a template file from the specified path."""
-    with open(path, "r") as f:
-        return f.read()
