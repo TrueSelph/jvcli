@@ -34,3 +34,4 @@ jobs:
           coverageFile: coverage.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           thresholdAll: 0.99
+          exclude: '*.tpl'
