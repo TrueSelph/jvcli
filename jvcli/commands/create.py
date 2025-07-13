@@ -152,7 +152,9 @@ def create_action(
 
     # Create action-specific .jac file from template (new path)
     action_jac_path = os.path.join(action_dir, f"{name}.jac")
-    action_jac_template_path = os.path.join(TEMPLATES_DIR, "2.1.0", "project", "actions", "action.jac")
+    action_jac_template_path = os.path.join(
+        TEMPLATES_DIR, "2.1.0", "project", "actions", "action.jac"
+    )
     if not os.path.exists(action_jac_template_path):
         click.secho(
             f"action.jac template for version {jivas_version} not found in {TEMPLATES_DIR}/project.",
