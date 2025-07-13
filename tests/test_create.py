@@ -381,3 +381,8 @@ class TestCreateCommand:
         mock_click.assert_called_with(
             "Template info.yaml not found in TEMPLATES_DIR.", fg="red"
         )
+
+
+def test_template_files_exist():
+    assert os.path.exists("jvcli/templates/2.1.0/project/actions/action.tpl")
+    assert os.path.exists("jvcli/templates/2.1.0/project/app/app.tpl")
