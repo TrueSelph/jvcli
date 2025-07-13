@@ -54,6 +54,8 @@ setup(
             "pytest",
             "pytest-mock",
             "pytest-cov",
+            "jaclang",
+            "pymongo"
         ],
     },
     entry_points={
