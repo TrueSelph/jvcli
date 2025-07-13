@@ -1,0 +1,6 @@
+[run]
+source = jvcli
+
+[report]
+omit =
+    jvcli/templates/**/*.tpl
