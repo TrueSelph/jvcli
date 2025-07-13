@@ -85,8 +85,11 @@ def startproject(project_name: str, version: str, no_env: bool) -> None:
                     with open(target_file_path_example, "w") as example_file:
                         example_file.write(contents)
 
-                with open(target_file_path, "w") as project_file:
-                    project_file.write(contents)
+                if not target_file_path.endswith(
+                    "actions/action.jac"
+                ) and not target_file_path.endswith("app/app.py"):
+                    with open(target_file_path, "w") as project_file:
+                        project_file.write(contents)
 
         click.secho(
             f"Successfully created Jivas project: {project_name} (Version: {version}){' (without .env file)' if no_env else ''}",
