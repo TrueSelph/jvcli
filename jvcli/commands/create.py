@@ -394,3 +394,9 @@ def create_docs(
         target_changelog = os.path.join(path, "CHANGELOG.md")
         with open(target_changelog, "w") as file:
             file.write(changelog_content)
+
+
+def load_template(path: str) -> str:
+    """Load a template file from the specified path."""
+    with open(path, "r") as f:
+        return f.read()

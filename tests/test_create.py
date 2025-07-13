@@ -6,7 +6,12 @@ from click.testing import CliRunner
 from pytest_mock import MockerFixture
 
 from jvcli import __supported__jivas__versions__
-from jvcli.commands.create import create_action, create_agent, create_namespace
+from jvcli.commands.create import (
+    create_action,
+    create_agent,
+    create_namespace,
+    load_template,
+)
 from jvcli.utils import TEMPLATES_DIR
 
 
@@ -383,6 +388,7 @@ class TestCreateCommand:
         )
 
 
-def test_template_files_exist():
-    assert os.path.exists("jvcli/templates/2.1.0/project/actions/action.tpl")
-    assert os.path.exists("jvcli/templates/2.1.0/project/app/app.tpl")
+def test_template_files_accessed() -> None:
+    """Test that the template files are accessed correctly."""
+    load_template("jvcli/templates/2.1.0/project/actions/action.tpl")
+    load_template("jvcli/templates/2.1.0/project/app/app.tpl")
