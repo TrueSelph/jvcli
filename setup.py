@@ -47,6 +47,11 @@ setup(
         "python-dotenv>=1.0.0",
         "semver>=3.0.4",
         "node-semver>=0.9.0",
+        "jaclang",
+        "pymongo",
+        "jac-cloud",
+        "uvicorn",
+        "fastapi",
     ],
     extras_require={
         "dev": [
