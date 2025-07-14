@@ -47,7 +47,7 @@ setup(
         "python-dotenv>=1.0.0",
         "semver>=3.0.4",
         "node-semver>=0.9.0",
-        "jvgraph>=0.0.1",
+        "jvgraph>=2.1.0",
         "jaclang",
         "pymongo",
         "jac-cloud",
