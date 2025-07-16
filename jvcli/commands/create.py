@@ -153,7 +153,7 @@ def create_action(
     # Create action-specific .jac file from template (new path)
     action_jac_path = os.path.join(action_dir, f"{name}.jac")
     action_jac_template_path = os.path.join(
-        TEMPLATES_DIR, "2.1.0", "project", "actions", "action.tmpl"
+        TEMPLATES_DIR, "2.1.0", "project", "actions", "action.example"
     )
     if not os.path.exists(action_jac_template_path):
         click.secho(
@@ -175,17 +175,12 @@ def create_action(
     with open(action_jac_path, "w") as file:
         file.write(action_jac_content)
 
-    # Create action-specific .test.jac file
-    action_test_jac_path = os.path.join(action_dir, f"{name}.test.jac")
-    with open(action_test_jac_path, "w") as f:
-        f.write("with entry {}")
-
     # Create the 'app' folder and default 'app.py'
     app_dir = os.path.join(action_dir, "app")
     os.makedirs(app_dir, exist_ok=True)
     app_file_path = os.path.join(app_dir, "app.py")
     app_template_path = os.path.join(
-        TEMPLATES_DIR, "2.1.0", "project", "app", "app.tmpl"
+        TEMPLATES_DIR, "2.1.0", "project", "app", "app.example"
     )
     if not os.path.exists(app_template_path):
         click.secho(
@@ -199,6 +194,26 @@ def create_action(
     with open(app_file_path, "w") as app_file:
         app_file.write(app_code)
 
+    # Create action-specific .test.jac file
+    action_test_jac_path = os.path.join(action_dir, f"{name}.test.jac")
+    action_test_template_path = os.path.join(
+        TEMPLATES_DIR, "2.1.0", "project", "actions", "action.test.example"
+    )
+    if not os.path.exists(action_test_template_path):
+        click.secho(
+            f"app.test.jac template for version {jivas_version} not found in {TEMPLATES_DIR}/project.",
+            fg="red",
+        )
+    else:
+        action_jac_test_template = "with entry {\n}"
+
+    with open(action_test_template_path, "r") as file:
+        action_jac_test_template = file.read()
+    action_jac_test_template = action_jac_test_template.replace("{{archetype}}", archetype)
+
+    with open(action_test_jac_path, "w") as f:
+        f.write(action_jac_test_template)
+    
     create_docs(action_dir, title, version, "action", description)
 
     click.secho(
