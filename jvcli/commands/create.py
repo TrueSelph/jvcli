@@ -209,11 +209,13 @@ def create_action(
 
     with open(action_test_template_path, "r") as file:
         action_jac_test_template = file.read()
-    action_jac_test_template = action_jac_test_template.replace("{{archetype}}", archetype)
+    action_jac_test_template = action_jac_test_template.replace(
+        "{{archetype}}", archetype
+    )
 
     with open(action_test_jac_path, "w") as f:
         f.write(action_jac_test_template)
-    
+
     create_docs(action_dir, title, version, "action", description)
 
     click.secho(
