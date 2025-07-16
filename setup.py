@@ -54,6 +54,8 @@ setup(
             "pytest",
             "pytest-mock",
             "pytest-cov",
+            "pymongo",
+            "jac-cloud",
         ],
     },
     entry_points={

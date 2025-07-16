@@ -6,7 +6,11 @@ from click.testing import CliRunner
 from pytest_mock import MockerFixture
 
 from jvcli import __supported__jivas__versions__
-from jvcli.commands.create import create_action, create_agent, create_namespace
+from jvcli.commands.create import (
+    create_action,
+    create_agent,
+    create_namespace,
+)
 from jvcli.utils import TEMPLATES_DIR
 
 
