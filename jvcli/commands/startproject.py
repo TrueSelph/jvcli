@@ -85,12 +85,7 @@ def startproject(project_name: str, version: str, no_env: bool) -> None:
                     with open(target_file_path_example, "w") as example_file:
                         example_file.write(contents)
 
-                print(f"Creating file: {target_file_path}")
-                if not (
-                    target_file_path.endswith("action.example")
-                    or target_file_path.endswith("action.test.example")
-                    or target_file_path.endswith("app.example")
-                ):
+                if not target_file_path.endswith(".tpl"):
                     with open(target_file_path, "w") as project_file:
                         project_file.write(contents)
 

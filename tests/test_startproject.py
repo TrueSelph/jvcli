@@ -54,12 +54,6 @@ class TestStartProjectCommand:
             "tests/README.md",
         ]
 
-        unexpected_files = [
-            "actions/action.example",
-            "actions/action.test.example",
-            "app.example",
-        ]
-
         mock_calls = mock_open.mock_calls
         written_files = {
             os.path.normpath(call.args[0])
@@ -71,11 +65,6 @@ class TestStartProjectCommand:
             for file in expected_files
         ]
         assert set(written_files) == set(normalized_expected_files)
-        for file in unexpected_files:
-            assert (
-                os.path.normpath(os.path.join("test_project", file))
-                not in written_files
-            )
 
         # Verify success message
         mock_click.assert_called_with(

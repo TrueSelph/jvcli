@@ -153,7 +153,7 @@ def create_action(
     # Create action-specific .jac file from template (new path)
     action_jac_path = os.path.join(action_dir, f"{name}.jac")
     action_jac_template_path = os.path.join(
-        TEMPLATES_DIR, "2.1.0", "project", "actions", "action.example"
+        TEMPLATES_DIR, "2.1.0", "project", "actions", "action.tpl"
     )
     if not os.path.exists(action_jac_template_path):
         click.secho(
@@ -180,7 +180,7 @@ def create_action(
     os.makedirs(app_dir, exist_ok=True)
     app_file_path = os.path.join(app_dir, "app.py")
     app_template_path = os.path.join(
-        TEMPLATES_DIR, "2.1.0", "project", "app", "app.example"
+        TEMPLATES_DIR, "2.1.0", "project", "app", "app.tpl"
     )
     if not os.path.exists(app_template_path):
         click.secho(
@@ -197,7 +197,7 @@ def create_action(
     # Create action-specific .test.jac file
     action_test_jac_path = os.path.join(action_dir, f"{name}.test.jac")
     action_test_template_path = os.path.join(
-        TEMPLATES_DIR, "2.1.0", "project", "actions", "action.test.example"
+        TEMPLATES_DIR, "2.1.0", "project", "actions", "action.test.tpl"
     )
     if not os.path.exists(action_test_template_path):
         click.secho(
