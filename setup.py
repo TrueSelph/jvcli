@@ -64,7 +64,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "jvcli = jvcli.cli:jvcli",
+            "jac = jvcli.cli:jvcli",
         ],
     },
     python_requires=">=3.12",
