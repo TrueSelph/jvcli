@@ -13,9 +13,11 @@ def test_render_basic() -> None:
     action_id = "B"
     info: dict[str, Any] = {}
 
-    with patch("fixtures.app.app.app_header") as m_header, patch(
-        "fixtures.app.app.app_controls"
-    ) as m_controls, patch("fixtures.app.app.app_update_action") as m_update:
+    with (
+        patch("fixtures.app.app.app_header") as m_header,
+        patch("fixtures.app.app.app_controls") as m_controls,
+        patch("fixtures.app.app.app_update_action") as m_update,
+    ):
         m_header.return_value = ("model", "module")
         render(router, agent_id, action_id, info)
         m_header.assert_called_once_with(agent_id, action_id, info)
