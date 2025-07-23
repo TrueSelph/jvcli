@@ -81,7 +81,7 @@ class TestJvcliCliPlugin:
             assert jvcli_entries[0].value == "jvcli.plugin.cli:JacCmd"
         except ImportError:
             # Fallback to pkg_resources for older Python
-            import pkg_resources
+            import pkg_resources  # type: ignore[import-untyped]
 
             jvcli_entries_iter = pkg_resources.iter_entry_points("jac", "jvcli")
             jvcli_entries = list(jvcli_entries_iter)  # type: ignore[arg-type]
