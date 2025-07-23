@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jvcli"
+version = "2.0.31"
+description = "CLI plugin for Jivas Package Repository integration with jac"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "MIT"}
+authors = [
+    {name = "TrueSelph Inc.", email = "admin@trueselph.com"},
+]
+dependencies = [
+    "jaclang",
+    "click>=8.1.8",
+    "requests>=2.32.3",
+    "packaging>=24.2",
+    "pyaml>=25.1.0",
+    "streamlit>=1.42.0",
+    "streamlit-elements>=0.1.0",
+    "streamlit-router>=0.1.8",
+    "streamlit-javascript>=0.1.5",
+    "python-dotenv>=1.0.0",
+    "semver>=3.0.4",
+    "node-semver>=0.9.0",
+    "jvgraph>=2.1.0",
+    "pymongo",
+    "jac-cloud",
+    "uvicorn",
+    "fastapi",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit",
+    "pytest",
+    "pytest-mock",
+    "pytest-cov",
+]
+
+# Plugin entry points for jac integration
+[project.entry-points."jac"]
+jvcli = "jvcli.plugin.cli:JacCmd"
+
+[project.urls]
+Homepage = "https://github.com/TrueSelph/jvcli"
+Repository = "https://github.com/TrueSelph/jvcli.git"
+
+[tool.setuptools]
+packages = ["jvcli", "jvcli.commands", "jvcli.client", "jvcli.plugin"]
+
+[tool.setuptools.package-data]
+jvcli = ["client/**/*", "templates/**/*", "py.typed"]
